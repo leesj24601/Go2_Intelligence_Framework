@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 프로젝트 개요
 
-Isaac Sim 환경에서 Unitree Go2 로봇에 가상 RealSense 카메라를 장착하고, 키보드로 조작하며 ORB-SLAM3를 통해 맵을 생성하는 프로젝트.
+Isaac Sim 환경에서 Unitree Go2 로봇에 가상 RealSense 카메라를 장착하고, 키보드로 조작하며 RTAB-Map을 통해 3D/2D 맵을 생성하는 프로젝트.
 
 ## 실행 명령어
 
@@ -26,8 +26,12 @@ source /opt/ros/humble/setup.bash
 ros2 topic list
 ros2 topic hz /camera/color/image_raw
 
-# RViz2로 카메라 시각화
+# RViz2로 시각화
 rviz2 -d config/go2_sim.rviz
+
+# RTAB-Map SLAM 실행 (Isaac Sim 실행 중, 별도 터미널)
+source /opt/ros/humble/setup.bash
+ros2 launch /home/cvr/Desktop/sj/isaac-project/launch/go2_rtabmap.launch.py
 
 # MCP를 통한 장애물 배치 (Isaac Sim 실행 중에만)
 python scripts/deploy_scene_mcp.py
@@ -60,6 +64,7 @@ go2_sim.py (Python 3.11, Isaac Lab)
 | `scripts/cli_args.py` | RSL-RL CLI argument 파서 유틸리티 |
 | `scripts/deploy_scene_mcp.py` | MCP 소켓(port 8766)으로 Isaac Sim에 장애물 동적 배치 |
 | `assets/slam_env.usd` | SLAM 환경 USD 파일 |
+| `launch/go2_rtabmap.launch.py` | RTAB-Map SLAM launch (정적 TF 2단계 + rtabmap 노드) |
 | `config/go2_sim.rviz` | RViz2 시각화 설정 |
 
 ## 중요 제약사항
@@ -88,9 +93,13 @@ go2_sim.py (Python 3.11, Isaac Lab)
 ### ROS2 토픽
 | 토픽 | 타입 | 용도 |
 |------|------|------|
-| `camera/color/image_raw` | `sensor_msgs/Image` (rgb8) | RGB 영상 |
-| `camera/depth/image_rect_raw` | `sensor_msgs/Image` (32FC1) | Depth 영상 |
+| `camera/color/image_raw` | `sensor_msgs/Image` (rgb8) | RGB 영상 (~10Hz, frameSkip=2) |
+| `camera/depth/image_rect_raw` | `sensor_msgs/Image` (32FC1) | Depth 영상 (~10Hz) |
 | `camera/camera_info` | `sensor_msgs/CameraInfo` | 카메라 intrinsics |
+| `/clock` | `rosgraph_msgs/Clock` | 시뮬레이션 시각 (use_sim_time) |
+| `/odom` | `nav_msgs/Odometry` | 로봇 오도메트리 |
+| `/tf` | `tf2_msgs/TFMessage` | TF 트리 (odom → base_link) |
+| `/imu/data` | `sensor_msgs/Imu` | IMU 데이터 |
 
 ## USD 환경 제작 규칙
 1. `UsdGeom.Cube/Cylinder` + `CollisionAPI` + `PhysxSchema` 사용

@@ -24,7 +24,8 @@ isaac-project/
 │   └── slam_env.usd            # SLAM 환경 USD (기둥, 상자 등 장애물 포함)
 ├── config/
 │   └── go2_sim.rviz            # RViz2 시각화 설정 (RGB/Depth/PointCloud2)
-├── launch/                     # (Phase 4: ORB-SLAM3 launch 파일 예정)
+├── launch/
+│   └── go2_rtabmap.launch.py   # RTAB-Map SLAM launch 파일 (정적 TF 2단계 포함)
 ├── .pretrained_checkpoints/
 │   └── rsl_rl/Isaac-Velocity-Rough-Unitree-Go2-v0/checkpoint.pt
 └── outputs/                    # Hydra 실행 로그 (자동 생성)
@@ -205,7 +206,9 @@ for i, arg in enumerate(argv_copy):
 | TCP 소켓 브릿지 | 소켓으로 데이터 전송 → 별도 ROS2 노드에서 퍼블리시 | 작동하지만 복잡도 높음 |
 | **OmniGraph ROS2 Bridge** | Isaac Sim 내장 Extension으로 직접 ROS2 토픽 퍼블리시 | **채택 — 가장 깔끔** |
 
-**최종 채택**: Isaac Lab `CameraCfg`로 카메라 센서를 scene에 추가 + `isaacsim.ros2.bridge` Extension의 OmniGraph 노드로 ROS2 퍼블리시하는 하이브리드 방식.
+**최종 채택**: Isaac Lab `CameraCfg`로 카메라 prim만 생성 + `isaacsim.ros2.bridge` Extension의 OmniGraph 노드로 ROS2 퍼블리시하는 하이브리드 방식.
+- CameraCfg에서 `data_types=[]`, `update_period=0` 설정 → Isaac Lab 센서 렌더링 비활성화 (이중 렌더링 방지)
+- 실제 렌더링은 숨겨진 뷰포트(320x240)에서만 수행, OmniGraph가 퍼블리시
 
 ### 2-3-1. 카메라 센서 추가 (`my_slam_env.py`) ✅
 
@@ -213,13 +216,13 @@ for i, arg in enumerate(argv_copy):
 `InteractiveScene._add_entities_from_cfg()`가 `cfg.__dict__`를 순회하므로 동적 속성도 자동 인식됨.
 
 ```python
-# Intel RealSense D435 근사 카메라
+# Intel RealSense D435 근사 카메라 (prim 생성 전용, 이중 렌더링 방지)
 self.scene.front_cam = CameraCfg(
     prim_path="{ENV_REGEX_NS}/Robot/base/front_cam",
-    update_period=1 / 30,  # 30fps
-    height=480,
-    width=640,
-    data_types=["rgb", "distance_to_image_plane"],
+    update_period=0,       # 센서 데이터 수집 비활성화
+    height=240,
+    width=320,
+    data_types=[],         # prim만 생성, 센서 렌더링 안 함
     spawn=sim_utils.PinholeCameraCfg(
         focal_length=15.0,
         focus_distance=400.0,
@@ -232,21 +235,30 @@ self.scene.front_cam = CameraCfg(
         convention="ros",
     ),
 )
+
+# IMU 센서 (50Hz, body frame)
+self.scene.imu_sensor = ImuCfg(
+    prim_path="{ENV_REGEX_NS}/Robot/base",
+    update_period=1.0 / 50.0,
+    gravity_bias=(0.0, 0.0, 9.81),
+)
 ```
 
 **카메라 파라미터 계산**:
 - HFOV = 2 * atan(horizontal_aperture / (2 * focal_length)) = 2 * atan(20.955 / 30) ≈ 69.9°
 - RealSense D435 color HFOV: 69.4° → 근사 일치
-- `clipping_range=(0.1, 50.0)` — 초기 10m에서 50m로 확장 (넓은 환경 대응)
+- `clipping_range=(0.1, 50.0)` — 넓은 환경 대응
 
 **카메라 마운트 위치**:
-- Go2 body 길이 ~0.5m, 높이 ~0.15m
 - `pos=(0.30, 0.0, 0.05)`: base 기준 전방 30cm, 높이 5cm (Go2 전면부)
 - `rot=(0.5, -0.5, 0.5, -0.5)`: ROS camera convention에서 robot +X 방향 정면을 바라봄
 
 ### 2-3-2. ROS2 OmniGraph 퍼블리싱 (`go2_sim.py`) ✅
 
-**구현 방식**: `isaacsim.ros2.bridge` Extension 활성화 → 숨겨진 뷰포트에서 렌더 프로덕트 생성 → OmniGraph 노드로 ROS2 퍼블리시.
+**구현 방식**: `isaacsim.ros2.bridge` Extension 활성화 → 숨겨진 뷰포트에서 렌더 프로덕트 생성 → `SIMULATION` 파이프라인 OmniGraph로 ROS2 퍼블리시.
+
+> **핵심 변경 (ONDEMAND → SIMULATION)**: `OnTick + ONDEMAND` 방식에서 `OnPlaybackTick + SIMULATION + execution evaluator` 방식으로 전환.
+> SIMULATION 파이프라인은 `env.step()` 내부에서 자동 실행되어 물리 스텝과 완벽 동기화됨. `evaluate_sync` 수동 호출 불필요.
 
 **1단계: ROS2 Bridge Extension 활성화**
 ```python
@@ -255,76 +267,100 @@ extensions.enable_extension("isaacsim.ros2.bridge")
 simulation_app.update()
 ```
 
-**2단계: 숨겨진 뷰포트 생성 + 렌더 프로덕트 획득**
+**2단계: 숨겨진 뷰포트 생성 + 렌더 프로덕트 획득 (320x240 저해상도)**
 ```python
 from omni.kit.viewport.utility import create_viewport_window
 
-vp_window = create_viewport_window("ROS2_Camera", width=640, height=480, visible=False)
+vp_window = create_viewport_window("ROS2_Camera", width=320, height=240, visible=False)
 vp_api = vp_window.viewport_api
 vp_api.set_active_camera("/World/envs/env_0/Robot/base/front_cam")
 rp_path = vp_api.get_render_product_path()
 ```
 - `visible=False`로 메인 뷰포트에 영향 없이 별도 렌더링
-- 카메라 prim path는 Isaac Lab의 env_0 절대 경로 사용: `/World/envs/env_0/Robot/base/front_cam`
+- 카메라 prim path: `/World/envs/env_0/Robot/base/front_cam` (Isaac Lab env_0 절대 경로)
 
-**3단계: OmniGraph 노드 생성**
+**3단계: OmniGraph 노드 생성 (SIMULATION 파이프라인)**
 ```python
+FRAME_SKIP = 2  # 퍼블리시Hz = simFPS / (skipCount + 1) → ~30fps / 3 = ~10Hz
+
 keys = og.Controller.Keys
-(ros_camera_graph, _, _, _) = og.Controller.edit(
+og.Controller.edit(
     {
         "graph_path": "/ROS2_Camera",
-        "evaluator_name": "push",
-        "pipeline_stage": og.GraphPipelineStage.GRAPH_PIPELINE_STAGE_ONDEMAND,
+        "evaluator_name": "execution",
+        "pipeline_stage": og.GraphPipelineStage.GRAPH_PIPELINE_STAGE_SIMULATION,
     },
     {
         keys.CREATE_NODES: [
-            ("OnTick", "omni.graph.action.OnTick"),
+            ("OnPlaybackTick", "omni.graph.action.OnPlaybackTick"),
             ("cameraHelperRgb", "isaacsim.ros2.bridge.ROS2CameraHelper"),
             ("cameraHelperDepth", "isaacsim.ros2.bridge.ROS2CameraHelper"),
             ("cameraHelperInfo", "isaacsim.ros2.bridge.ROS2CameraInfoHelper"),
         ],
         keys.CONNECT: [
-            ("OnTick.outputs:tick", "cameraHelperRgb.inputs:execIn"),
-            ("OnTick.outputs:tick", "cameraHelperDepth.inputs:execIn"),
-            ("OnTick.outputs:tick", "cameraHelperInfo.inputs:execIn"),
+            ("OnPlaybackTick.outputs:tick", "cameraHelperRgb.inputs:execIn"),
+            ("OnPlaybackTick.outputs:tick", "cameraHelperDepth.inputs:execIn"),
+            ("OnPlaybackTick.outputs:tick", "cameraHelperInfo.inputs:execIn"),
         ],
         keys.SET_VALUES: [
             ("cameraHelperRgb.inputs:renderProductPath", rp_path),
-            ("cameraHelperRgb.inputs:frameId", "camera_link"),
+            ("cameraHelperRgb.inputs:frameId", "camera_optical_frame"),
             ("cameraHelperRgb.inputs:topicName", "camera/color/image_raw"),
             ("cameraHelperRgb.inputs:type", "rgb"),
+            ("cameraHelperRgb.inputs:frameSkipCount", FRAME_SKIP),
             ("cameraHelperDepth.inputs:renderProductPath", rp_path),
-            ("cameraHelperDepth.inputs:frameId", "camera_link"),
+            ("cameraHelperDepth.inputs:frameId", "camera_optical_frame"),
             ("cameraHelperDepth.inputs:topicName", "camera/depth/image_rect_raw"),
             ("cameraHelperDepth.inputs:type", "depth"),
+            ("cameraHelperDepth.inputs:frameSkipCount", FRAME_SKIP),
             ("cameraHelperInfo.inputs:renderProductPath", rp_path),
-            ("cameraHelperInfo.inputs:frameId", "camera_link"),
+            ("cameraHelperInfo.inputs:frameId", "camera_optical_frame"),
             ("cameraHelperInfo.inputs:topicName", "camera/camera_info"),
+            ("cameraHelperInfo.inputs:frameSkipCount", FRAME_SKIP),
         ],
     },
 )
-og.Controller.evaluate_sync(ros_camera_graph)
 ```
 
-**OmniGraph 노드 구성**:
-| 노드 | 타입 | 역할 |
-|------|------|------|
-| `OnTick` | `omni.graph.action.OnTick` | 매 프레임 트리거 |
-| `cameraHelperRgb` | `isaacsim.ros2.bridge.ROS2CameraHelper` | RGB 이미지 퍼블리시 |
-| `cameraHelperDepth` | `isaacsim.ros2.bridge.ROS2CameraHelper` | Depth 이미지 퍼블리시 |
-| `cameraHelperInfo` | `isaacsim.ros2.bridge.ROS2CameraInfoHelper` | CameraInfo 퍼블리시 |
+**OmniGraph 구성 (총 4개 그래프)**:
 
-**발행 토픽**:
+| 그래프 경로 | 역할 | 주요 노드 |
+|------------|------|-----------|
+| `/ROS2_Camera` | RGB + Depth + CameraInfo 퍼블리시 | `OnPlaybackTick`, `ROS2CameraHelper` × 2, `ROS2CameraInfoHelper` |
+| `/ROS2_Clock` | `/clock` 퍼블리시 (use_sim_time 지원) | `OnPlaybackTick`, `IsaacReadSimulationTime`, `ROS2PublishClock` |
+| `/ROS2_Odom` | Odometry + TF(odom→base_link) | `OnPlaybackTick`, `IsaacComputeOdometry`, `ROS2PublishOdometry`, `ROS2PublishRawTransformTree` |
+| `/ROS2_IMU` | IMU 데이터 퍼블리시 | `OnPlaybackTick`, `IsaacReadSimulationTime`, `ROS2PublishImu` |
+
+**발행 토픽 (전체)**:
 | 토픽 | 타입 | frame_id | 용도 |
 |------|------|----------|------|
-| `camera/color/image_raw` | `sensor_msgs/Image` | `camera_link` | RGB 영상 |
-| `camera/depth/image_rect_raw` | `sensor_msgs/Image` | `camera_link` | Depth 영상 |
-| `camera/camera_info` | `sensor_msgs/CameraInfo` | `camera_link` | Intrinsic 파라미터 |
+| `camera/color/image_raw` | `sensor_msgs/Image` (rgb8) | `camera_optical_frame` | RGB 영상 (~10Hz) |
+| `camera/depth/image_rect_raw` | `sensor_msgs/Image` (32FC1) | `camera_optical_frame` | Depth 영상 (~10Hz) |
+| `camera/camera_info` | `sensor_msgs/CameraInfo` | `camera_optical_frame` | Intrinsic 파라미터 |
+| `/clock` | `rosgraph_msgs/Clock` | - | 시뮬레이션 시각 (use_sim_time) |
+| `/odom` | `nav_msgs/Odometry` | `odom` → `base_link` | 로봇 위치/속도 |
+| `/tf` | `tf2_msgs/TFMessage` | `odom` → `base_link` | TF 트리 |
+| `/imu/data` | `sensor_msgs/Imu` | `base_link` | IMU 데이터 |
+
+**IMU 데이터 주입 방식** (메인 루프에서 OmniGraph 속성에 직접 설정):
+```python
+imu = env.unwrapped.scene["imu_sensor"]
+imu_ang_vel = imu.data.ang_vel_b[0].cpu().numpy()
+imu_lin_acc = imu.data.lin_acc_b[0].cpu().numpy()
+imu_quat_wxyz = imu.data.quat_w[0].cpu().numpy()
+# Isaac Lab WXYZ → OmniGraph XYZW (IJKR)
+imu_quat_xyzw = [imu_quat_wxyz[1], imu_quat_wxyz[2], imu_quat_wxyz[3], imu_quat_wxyz[0]]
+
+og.Controller.set(og.Controller.attribute("/ROS2_IMU/publishImu.inputs:angularVelocity"), imu_ang_vel.tolist())
+og.Controller.set(og.Controller.attribute("/ROS2_IMU/publishImu.inputs:linearAcceleration"), imu_lin_acc.tolist())
+og.Controller.set(og.Controller.attribute("/ROS2_IMU/publishImu.inputs:orientation"), imu_quat_xyzw)
+```
 
 **주의사항**:
-- `setup_ros2_camera_graph` 내에서 `simulation_app.update()` 호출 제거함 — 시간 불일치 경고(`Physics dt != Rendering dt`) 방지
-- `pipeline_stage`를 `GRAPH_PIPELINE_STAGE_ONDEMAND`로 설정하여 자동 실행 방지, `evaluate_sync`로 초기 1회 평가
-- try/except로 감싸서 ROS2 Bridge 실패 시에도 시뮬레이션은 계속 동작
+- `SIMULATION + execution evaluator`: `env.step()` 내부 시뮬레이션 스텝과 자동 동기화, `evaluate_sync` 불필요
+- `OnPlaybackTick`: Playback 상태일 때만 트리거 (Isaac Lab은 항상 Playback 상태로 실행)
+- `frameSkipCount=2`: 30fps 시뮬레이션 기준 ~10Hz 퍼블리시 (CPU 부하 감소)
+- `IsaacComputeOdometry`의 `chassisPrim` 관계는 USD API로 별도 설정 필요
 
 ### 2-3-3. 실행 방법
 
@@ -342,12 +378,14 @@ rviz2 -d config/go2_sim.rviz
 ```
 
 ### Phase 2-3 검증
-- [x] CameraCfg로 카메라 센서 scene에 추가
-- [x] OmniGraph ROS2 Bridge로 RGB/Depth/CameraInfo 퍼블리시 설정
-- [x] 숨겨진 뷰포트로 메인 뷰포트 영향 없이 렌더링
+- [x] CameraCfg로 카메라 prim 생성 (data_types=[], 이중 렌더링 방지)
+- [x] ImuCfg로 IMU 센서 추가
+- [x] OmniGraph SIMULATION 파이프라인으로 RGB/Depth/CameraInfo 퍼블리시
+- [x] `/clock` 퍼블리시 (use_sim_time 지원)
+- [x] `/odom` + `/tf` (odom→base_link) 퍼블리시
+- [x] `/imu/data` 퍼블리시 (메인 루프에서 Isaac Lab IMU 데이터 주입)
+- [x] 숨겨진 뷰포트(320x240)로 메인 뷰포트 영향 없이 렌더링
 - [x] `source /opt/ros/humble/setup.bash` 후 실행 시 Extension 활성화 확인
-- [x] `ros2 topic list` → 3개 토픽 확인 (`camera/color/image_raw`, `camera/depth/image_rect_raw`, `camera/camera_info`)
-- [x] RViz2에서 RGB/Depth 영상 표시 확인
 
 ### Phase 2-3 해결된 에러
 | 에러 | 원인 | 해결 |
@@ -355,12 +393,15 @@ rviz2 -d config/go2_sim.rviz
 | rclpy import 불가 | conda Python 3.11 ↔ ROS2 rclpy Python 3.10 버전 불일치 | OmniGraph ROS2 Bridge 방식으로 전환 |
 | `Physics dt != Rendering dt` 경고 | OmniGraph 설정 중 `simulation_app.update()` 호출 | setup 함수 내 `update()` 호출 제거 |
 | `--enable_cameras` argparse 충돌 | AppLauncher가 자체 추가하는 플래그를 수동 등록 | 파싱 후 `args_cli.enable_cameras = True` 직접 설정 |
+| `OnTick + ONDEMAND` 동기화 문제 | 물리 스텝과 타이밍 불일치 | `OnPlaybackTick + SIMULATION + execution evaluator`로 전환 |
+| WXYZ → XYZW 쿼터니언 변환 | Isaac Lab과 OmniGraph의 쿼터니언 순서 다름 | `[w,x,y,z] → [x,y,z,w]` 수동 변환 |
 
 ### 아키텍처 변경 이력
 1. **초기 계획**: CameraCfg + rclpy로 메인 루프에서 직접 퍼블리시
 2. **문제 발견**: conda 3.11에서 rclpy(3.10) import 불가
 3. **중간 시도**: TCP 소켓 브릿지 (`go2_sim.py` → socket → `ros2_camera_bridge.py`)
-4. **최종 채택**: Isaac Sim 내장 OmniGraph ROS2 Bridge Extension — rclpy 불필요, 가장 단순
+4. **1차 채택**: OmniGraph `OnTick + ONDEMAND` 방식 (수동 `evaluate_sync`)
+5. **최종 채택**: OmniGraph `OnPlaybackTick + SIMULATION + execution evaluator` — 시뮬레이션 스텝과 자동 동기화, 가장 단순
 
 ---
 
@@ -387,66 +428,82 @@ rviz2 -d config/go2_sim.rviz
 
 ---
 
-## Phase 4: RTAB-Map 설치 및 설정 (예정)
+## Phase 4: RTAB-Map 설치 및 설정 ✅ 완료
 
 **목표**: RTAB-Map을 RGBD 모드로 설치하고, Isaac Sim 카메라 토픽에 연결하여 단독 실행 테스트.
 
-### 4-1. RTAB-Map 설치
+### TF 트리 구성 (완성)
+
+```
+odom
+ └─ base_link           (/tf, OmniGraph IsaacComputeOdometry)
+      └─ camera_link    (정적 TF, base_link 기준 위치 오프셋)
+           └─ camera_optical_frame  (정적 TF, 회전만)
+```
+
+### 4-1. RTAB-Map 설치 ✅
 
 ```bash
-source /opt/ros/humble/setup.bash
 sudo apt install ros-humble-rtabmap-ros
 ```
 
-확인:
-```bash
-ros2 pkg list | grep rtabmap
-```
+설치 확인: `rtabmap_slam`, `rtabmap_odom`, `rtabmap_ros`, `rtabmap_rviz_plugins` 등 12개 패키지 확인됨.
 
-### 4-2. Launch 파일 작성 (`launch/go2_rtabmap.launch.py`)
+### 4-2. Launch 파일 작성 (`launch/go2_rtabmap.launch.py`) ✅
 
-RTAB-Map RGBD 모드 launch 파일 작성. 주요 설정:
+**오도메트리 소스**: 방법 A 채택 — Isaac Sim OmniGraph `/odom` 직접 사용 (`subscribe_odom_info=False`)
 
-- [ ] `rtabmap` 노드 설정 (RGBD 모드, 루프 클로저 활성화)
-- [ ] `rgbd_odometry` 노드 설정 (비주얼 오도메트리)
-- [ ] 토픽 remapping (Isaac Sim 카메라 토픽 → RTAB-Map 입력)
-- [ ] `frame_id` 설정 (`camera_link` — Isaac Sim OmniGraph와 일치)
-- [ ] `approx_sync` 활성화 (RGB와 Depth 타임스탬프 근사 동기화)
-
-**예상 launch 파라미터**:
+**주요 파라미터 (최종)**:
 ```python
-# RTAB-Map RGBD launch 주요 파라미터
 parameters=[{
-    'frame_id': 'camera_link',
-    'subscribe_depth': True,
-    'approx_sync': True,
-    'Vis/MinInliers': '10',           # 최소 inlier 수
-    'RGBD/OptimizeMaxError': '0',     # 최적화 에러 필터 비활성화
+    "frame_id": "camera_link",
+    "odom_frame_id": "odom",
+    "subscribe_depth": True,
+    "subscribe_odom_info": False,      # Isaac Sim odom 직접 사용
+    "subscribe_imu": True,             # IMU 융합
+    "approx_sync": True,
+    "approx_sync_max_interval": 0.5,
+    "use_sim_time": use_sim_time,
+    "Rtabmap/DetectionRate": "0.5",
+    "Reg/Strategy": "0",              # ICP
+    "Reg/Force3DoF": "false",         # 6DoF odom 사용 (족형 로봇 필수)
+    "Grid/FromDepth": "true",
+    "Grid/RangeMax": "5.0",
+    "Grid/CellSize": "0.05",
 }],
 remappings=[
-    ('rgb/image', 'camera/color/image_raw'),
-    ('depth/image', 'camera/depth/image_rect_raw'),
-    ('rgb/camera_info', 'camera/camera_info'),
+    ("rgb/image", "/camera/color/image_raw"),
+    ("depth/image", "/camera/depth/image_rect_raw"),
+    ("rgb/camera_info", "/camera/camera_info"),
+    ("odom", "/odom"),
+    ("imu", "/imu/data"),
 ],
 ```
 
-### 4-3. TF 설정
+### 4-3. 정적 TF 설정 ✅
 
-RTAB-Map이 동작하려면 최소한의 TF tree가 필요:
-- [ ] `odom` → `camera_link` TF 퍼블리시 방법 결정
-  - 방법 A: RTAB-Map의 `rgbd_odometry` 노드가 자체 생성
-  - 방법 B: Isaac Sim에서 OmniGraph TF Publisher로 퍼블리시
-- [ ] `map` → `odom` TF는 RTAB-Map이 자동 생성
+`base_link → camera_optical_frame`을 **2단계 TF**로 분리 구현:
 
-### 4-4. 단독 실행 테스트
+```python
+# TF 1: base_link → camera_link (위치 오프셋만)
+static_transform_publisher args=["0.30","0.0","0.05","0","0","0","base_link","camera_link"]
 
-- [ ] RTAB-Map 노드 단독 실행 (크래시 없는지 확인)
-- [ ] `ros2 topic list` → RTAB-Map 출력 토픽 확인
-- [ ] `rgbd_odometry` 노드가 오도메트리 계산하는지 확인
+# TF 2: camera_link → camera_optical_frame (회전만, ROS ↔ ROS camera convention)
+static_transform_publisher args=["0","0","0","-1.5708","0","-1.5708","camera_link","camera_optical_frame"]
+```
+
+- 카메라 오프셋: `pos=(0.30, 0.0, 0.05)` — base 기준 전방 30cm, 높이 5cm
+- launch 파일에 두 `static_transform_publisher` 노드가 모두 포함됨
+
+### 4-4. 단독 실행 테스트 ✅
+
+- [x] RTAB-Map 노드 단독 실행 (크래시 없음)
+- [x] `ros2 topic list` → RTAB-Map 출력 토픽 확인
+- [x] `/odom` 토픽 RTAB-Map 수신 확인
 
 ---
 
-## Phase 5: Full Integration & Verification (예정)
+## Phase 5: Full Integration & Verification ✅ 완료
 
 **목표**: Isaac Sim + RTAB-Map + RViz2 전체 시스템을 통합 실행하여 3D 맵 생성.
 
@@ -458,7 +515,7 @@ source /opt/ros/humble/setup.bash
 cd /home/cvr/Desktop/sj/isaac-project
 /home/cvr/anaconda3/envs/lab/bin/python scripts/go2_sim.py
 
-# 터미널 2: RTAB-Map (SLAM + 비주얼 오도메트리)
+# 터미널 2: RTAB-Map (SLAM)
 source /opt/ros/humble/setup.bash
 ros2 launch /home/cvr/Desktop/sj/isaac-project/launch/go2_rtabmap.launch.py
 
@@ -469,22 +526,22 @@ rviz2 -d config/go2_sim.rviz
 
 ### 검증 항목
 
-- [ ] RTAB-Map이 Isaac Sim 카메라 토픽 구독 확인
-- [ ] `rgbd_odometry`가 오도메트리 출력하는지 확인 (`/odom` 토픽)
-- [ ] Go2 키보드 조작으로 환경 탐색
-- [ ] RTAB-Map Feature 추출 동작 확인
-- [ ] RViz2에서 3D Point Cloud Map 생성 확인
-- [ ] RViz2에서 2D OccupancyGrid 맵 확인
-- [ ] 루프 클로저 감지 동작 확인 (같은 장소 재방문 시)
-- [ ] Trajectory 경로 시각화 확인
+- [x] RTAB-Map이 Isaac Sim 카메라 토픽 구독 확인
+- [x] Isaac Sim `/odom`이 RTAB-Map에서 수신되는지 확인
+- [x] Go2 키보드 조작으로 환경 탐색
+- [x] RTAB-Map Feature 추출 동작 확인
+- [x] RViz2에서 3D Point Cloud Map 생성 확인
+- [x] RViz2에서 2D OccupancyGrid 맵 확인
+- [x] Trajectory 경로 시각화 확인
+- [x] 루프 클로저 감지 동작 확인
 
-### RViz2 시각화 설정 업데이트
+### RViz2 시각화 설정 (`config/go2_sim.rviz`)
 
-`config/go2_sim.rviz`에 추가할 Display:
-- [ ] `MapCloud` — RTAB-Map 3D 포인트클라우드 (`/rtabmap/mapData`)
-- [ ] `Map` — 2D OccupancyGrid (`/rtabmap/map` 또는 `/map`)
-- [ ] `Odometry` — 로봇 궤적 (`/odom`)
-- [ ] `TF` — TF tree 시각화
+- [x] RGB 이미지 (`/camera/color/image_raw`)
+- [x] Depth 이미지 (`/camera/depth/image_rect_raw`)
+- [x] RTAB-Map 3D 포인트클라우드 (`/rtabmap/mapData` 등)
+- [x] 2D OccupancyGrid 맵
+- [x] Odometry / TF tree 시각화
 
 ---
 
@@ -494,9 +551,11 @@ rviz2 -d config/go2_sim.rviz
 | 이슈 | 해결 |
 |------|------|
 | ROS2 Bridge Extension 미활성화 | `source /opt/ros/humble/setup.bash` 후 실행 필수 |
-| 토픽 발행 안됨 | OmniGraph `OnTick → execIn` 연결 확인 |
+| 토픽 발행 안됨 | OmniGraph `OnPlaybackTick → execIn` 연결 확인, pipeline_stage=SIMULATION 확인 |
 | Depth 전부 0 | Camera Helper type=`depth`, `clipping_range` 확인 |
 | `Physics dt != Rendering dt` 경고 | OmniGraph 설정 중 `simulation_app.update()` 제거 |
+| IMU 쿼터니언 오류 | Isaac Lab WXYZ → OmniGraph XYZW 변환: `[w,x,y,z] → [x,y,z,w]` |
+| Odometry chassisPrim 미설정 | `compute_prim.GetRelationship("inputs:chassisPrim").SetTargets([Sdf.Path(...)])` |
 
 ### Python 환경
 | 이슈 | 해결 |
@@ -504,16 +563,42 @@ rviz2 -d config/go2_sim.rviz
 | rclpy import 불가 | conda 3.11에서 불가 → OmniGraph Bridge 사용 |
 | Hydra가 `--rt` 플래그 에러 | AppLauncher 파싱 전 `sys.argv`에서 수동 추출 |
 
-### RTAB-Map (예상)
+### RTAB-Map
 | 이슈 | 해결 |
 |------|------|
 | Feature 부족 / 매칭 실패 | `Vis/MinInliers` 낮추기, 환경에 텍스처 추가 |
 | RGB-Depth 동기화 실패 | `approx_sync:=true`, `approx_sync_max_interval:=0.05` |
 | QoS 불일치 | `ros2 topic info -v`로 QoS 확인 후 맞춤 |
-| TF tree 누락 | `odom` → `camera_link` TF 퍼블리시 확인, `rgbd_odometry` 사용 |
+| TF tree 누락 | `odom → base_link`는 OmniGraph가 퍼블리시. `base_link → camera_optical_frame` 정적 TF 추가 필요 |
 | 맵이 생성 안 됨 | `rtabmap` 로그에서 수신 토픽 확인, `rqt_graph`로 연결 확인 |
 | OccupancyGrid 비어있음 | `Grid/FromDepth:=true` 파라미터 확인 |
 | 메모리 과다 사용 | `Mem/STMSize` 파라미터로 단기 메모리 크기 제한 |
+| use_sim_time 미적용 | `/clock` 토픽 확인, `use_sim_time: True` 파라미터 설정 |
+| **바닥/벽이 여러 각도로 겹쳐 보임 (ghost layer)** | `Reg/Force3DoF: false`로 변경. 아래 참고. |
+
+#### 포인트 클라우드 겹침 (Reg/Force3DoF) — 해결됨
+
+**증상**: 3D 맵에서 바닥이 평평해야 하는데 여러 각도의 평면이 부채꼴처럼 겹쳐 나타남. 기둥 등 물체도 2~3겹으로 보임.
+
+**원인**: `Reg/Force3DoF: true` + 6DoF ground truth odom 충돌.
+
+Go2는 보행 중 body가 pitch/roll로 진동한다 (±5~15°). `IsaacComputeOdometry`는 이 6DoF 포즈를 정확히 퍼블리시하지만, RTAB-Map이 `Force3DoF=true`일 때 내부 그래프 최적화를 (x, y, yaw)만으로 수행한다. 결과적으로:
+
+```
+프레임 A → pitch=+5°로 투영된 포인트 클라우드 저장
+프레임 B → pitch=-3°로 투영된 포인트 클라우드 저장
+최적화 → pitch를 0°로 강제 보정 → 두 클라우드의 기울기 차이가 그대로 남음
+→ 같은 바닥이 서로 다른 각도로 겹쳐 보임
+```
+
+`Force3DoF`는 z/pitch/roll이 없는 2D 평면 로봇(바퀴형)에 적합한 옵션. 3D로 움직이는 족형 로봇에는 역효과.
+
+**해결**: `Reg/Force3DoF: "false"` (6DoF odom을 신뢰)
+
+```python
+# launch/go2_rtabmap.launch.py
+"Reg/Force3DoF": "false",  # 6DoF ground truth odom 사용 시 필수
+```
 
 ### MCP 연결
 | 이슈 | 해결 |
