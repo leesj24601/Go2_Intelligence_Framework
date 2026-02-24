@@ -55,8 +55,8 @@ map  ←─ RTAB-Map이 발행 (map→odom TF)
 ```
 footprint: [[-0.35, -0.20], [-0.35, 0.20], [0.35, 0.20], [0.35, -0.20]]  # 700x400mm
 max_vel_x: 1.0 m/s
-max_vel_y: 0.5 m/s  (사족보행 → 횡이동 가능)
-max_vel_theta: 0.8 rad/s
+max_vel_y: 0.4 m/s  (사족보행 → 횡이동 가능)
+max_vel_theta: 1.0 rad/s
 ```
 
 ### footprint 결정 근거
@@ -76,7 +76,8 @@ max_vel_theta: 0.8 rad/s
 - IsaacLab 훈련 범위 (`velocity_env_cfg.py`): lin_vel_x/y=±1.0, ang_vel_z=±1.0
 - **1.5 m/s는 훈련 범위 초과** → 정책 불안정 위험
 - 논문 실측값 (arxiv 2504.17880, Go2 Edu): x=1.0, y=0.5, theta=0.8
-- **채택: x=1.0, y=0.5, theta=0.8** — 훈련 범위 내 + 논문 검증값
+- unitree_rl_lab `limit_ranges` (실제 훈련 최대 범위): x=±1.0, y=±0.4, ang_z=±1.0
+- **채택: x=1.0, y=0.4, theta=1.0** — unitree_rl_lab 훈련 범위 기준 (논문 y=0.5는 범위 초과)
 
 > ⚠️ **재확인 필요**: 현재 속도는 기본 Isaac Lab 정책 기준. unitree_rl_lab 정책으로 교체 시
 > 해당 정책의 훈련 범위(`vel_range` 또는 `command_ranges`)를 확인하여 이 값을 재조정해야 함.
@@ -130,67 +131,100 @@ max_vel_theta: 0.8 rad/s
 
 ---
 
-## Phase 2: 센서 변환 (Depth → LaserScan)
+## Phase 2: 센서 변환 (Depth → LaserScan) ✅ 완료
 
 ### 목표
 Depth 이미지를 Nav2 Costmap이 사용할 2D LaserScan으로 변환
 
-### 설정 포인트
-```yaml
-# depthimage_to_laserscan 주요 파라미터
-scan_height: 1          # 사용할 픽셀 행 수
-scan_time: 0.1          # 스캔 주기
-range_min: 0.2
-range_max: 5.0
-output_frame: base_link
+### 구현 내용
+
+`launch/go2_rtabmap.launch.py`에 `depthimage_to_laserscan` 노드 추가:
+
+```python
+depthimage_to_laserscan = Node(
+    package="depthimage_to_laserscan",
+    executable="depthimage_to_laserscan_node",
+    parameters=[{
+        "scan_height": 10,       # 중앙 10행 평균 → 노이즈 감소 (1행보다 안정적)
+        "scan_time": 0.1,
+        "range_min": 0.2,
+        "range_max": 5.0,
+        "output_frame": "camera_link",
+    }],
+    remappings=[
+        ("depth", "/camera/depth/image_rect_raw"),        # ⚠️ "image" 아님
+        ("depth_camera_info", "/camera/camera_info"),     # ⚠️ "camera_info" 아님
+        ("scan", "/scan"),
+    ],
+)
 ```
+
+> ⚠️ **주의**: `depthimage_to_laserscan` 노드의 내부 토픽명은 `image`/`camera_info`가 아니라
+> `depth`/`depth_camera_info`임. `ros2 node info`로 확인 필수.
+
+### 실측 결과
+- 실제 발행 주파수: **~4.4Hz** (설정 10Hz보다 낮음 — depth 카메라 발행 속도에 종속)
+- scan 위치: 카메라 높이(ground + ~0.33m)에서 수평 스캔
+- 장애물 감지: 벽/박스 표면에 정확히 찍힘 ✅
 
 > ℹ️ 대안: PointCloud2를 costmap의 obstacle_layer에 직접 연결 가능
 > (더 많은 정보 활용, 계산량 증가)
 
 ### 작업
-- [ ] `depthimage_to_laserscan` 노드 launch 설정
-- [ ] scan 높이(지면 기준 카메라 높이) 파라미터 조정
-- [ ] RViz2에서 `/scan` 토픽 확인 (지면 평행, 장애물 감지 확인)
+- [x] `depthimage_to_laserscan` 노드 launch 설정
+- [x] scan 높이(지면 기준 카메라 높이) 파라미터 조정 (`scan_height: 10`)
+- [x] RViz2에서 `/scan` 토픽 확인 (지면 평행, 장애물 감지 확인)
 
 ---
 
-## Phase 3: Nav2 파라미터 설정
+## Phase 3: Nav2 파라미터 설정 ✅ 완료
 
 ### 파일 생성: `config/go2_nav2_params.yaml`
 
-#### 핵심 파라미터 구조
+#### 핵심 파라미터 구조 (실제 적용값)
 ```yaml
-bt_navigator:
-  default_nav_to_pose_bt_xml: ...  # behavior tree
-
 controller_server:
-  controller_plugins: ["FollowPath"]
+  controller_frequency: 10.0
   FollowPath:
     plugin: "nav2_mppi_controller::MPPIController"
-    max_vel_x: 1.5
-    max_vel_y: 0.5      # 횡이동 (Go2 특성)
-    max_vel_theta: 1.5
+    motion_model: "Omni"    # Go2: 사족보행 omnidirectional
+    time_steps: 56
+    model_dt: 0.05          # horizon: 56 * 0.05 = 2.8s
+    vx_max: 1.0             # unitree_rl_lab limit_ranges 기준
+    vx_min: -0.5
+    vy_max: 0.4             # unitree_rl_lab limit_ranges 기준
+    wz_max: 1.0             # unitree_rl_lab limit_ranges 기준
 
 local_costmap:
-  observation_sources: scan
-  scan:
-    topic: /scan
-    sensor_frame: camera_link
+  footprint: "[[-0.35,-0.20],[-0.35,0.20],[0.35,0.20],[0.35,-0.20]]"
+  plugins: ["voxel_layer", "inflation_layer"]
+  voxel_layer:
+    observation_sources: scan  # /scan (depthimage_to_laserscan)
+  inflation_layer:
+    inflation_radius: 0.55    # footprint 최대반경 ~0.40 + 여유 0.15
 
 global_costmap:
-  robot_radius: 0.35    # 또는 footprint 사용
+  footprint: "[[-0.35,-0.20],[-0.35,0.20],[0.35,0.20],[0.35,-0.20]]"
+  plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+  inflation_layer:
+    inflation_radius: 0.55
 
 planner_server:
-  plugin: "nav2_navfn_planner/NavfnPlanner"
-  use_astar: true
+  GridBased:
+    plugin: "nav2_navfn_planner/NavfnPlanner"
+    use_astar: true
+
+velocity_smoother:
+  max_velocity: [1.0, 0.4, 1.0]   # [x, y, theta]
 ```
 
+> ℹ️ `velocity_smoother`, `collision_monitor`, `behavior_server` (spin/backup) 모두 포함됨
+
 ### 작업
-- [ ] `config/go2_nav2_params.yaml` 작성
-- [ ] MPPI controller 파라미터 튜닝 (속도 제한, 예측 horizon)
-- [ ] Global/Local costmap 인플레이션 반경 설정
-- [ ] Footprint 정확히 설정
+- [x] `config/go2_nav2_params.yaml` 작성
+- [x] MPPI controller 파라미터 튜닝 (motion_model=Omni, horizon=2.8s)
+- [x] Global/Local costmap 인플레이션 반경 설정 (0.55m)
+- [x] Footprint 정확히 설정 (700×400mm)
 
 ---
 
@@ -238,9 +272,9 @@ slam_mode = LaunchConfiguration('slam', default='true')
 - [ ] cmd_vel 값이 로봇 속도 제한 내에 있는지 확인
 
 ### 튜닝 포인트
-- costmap 인플레이션 반경: 로봇 크기 + 여유 (0.5m 권장)
-- MPPI horizon: 2.0s (너무 짧으면 진동, 너무 길면 느림)
-- recovery behavior: spin, backup 활성화 여부
+- costmap 인플레이션 반경: **0.55m 적용** (footprint 최대반경 ~0.40 + 여유 0.15)
+- MPPI horizon: **2.8s 적용** (time_steps=56, model_dt=0.05) — 너무 짧으면 진동, 너무 길면 느림
+- recovery behavior: spin, backup **활성화됨** (behavior_server에 포함)
 
 ---
 
@@ -269,7 +303,7 @@ slam_mode = LaunchConfiguration('slam', default='true')
 
 ### Phase 0 ✅ 완료
 - [x] Go2 footprint 확정: 700×400mm (±0.35, ±0.20)
-- [x] 최대 속도 확정: x=1.0, y=0.5, theta=0.8 rad/s (훈련 범위 기반)
+- [x] 최대 속도 확정: x=1.0, y=0.4, theta=1.0 rad/s (unitree_rl_lab limit_ranges 기반)
 
 ### Phase 1 ⭐ ✅ 완료
 - [x] `go2_sim.py`에 `/cmd_vel` subscriber 추가 (별도 스레드)
@@ -277,13 +311,13 @@ slam_mode = LaunchConfiguration('slam', default='true')
 - [x] 방향키로 동작 검증 (실제 이동 확인)
 - [x] 타임아웃 안전장치 구현 (0.5초)
 
-### Phase 2
-- [ ] `depthimage_to_laserscan` launch 설정
-- [ ] RViz2에서 `/scan` 검증
+### Phase 2 ✅ 완료
+- [x] `depthimage_to_laserscan` launch 설정 (`go2_rtabmap.launch.py`에 통합)
+- [x] RViz2에서 `/scan` 검증 (4.4Hz, 장애물 감지 확인)
 
-### Phase 3
-- [ ] `config/go2_nav2_params.yaml` 작성 (MPPI 기반)
-- [ ] MPPI / costmap 파라미터 튜닝
+### Phase 3 ✅ 완료
+- [x] `config/go2_nav2_params.yaml` 작성 (MPPI Omni, horizon=2.8s)
+- [x] MPPI / costmap 파라미터 튜닝 (inflation_radius=0.55, velocity_smoother 포함)
 
 ### Phase 4
 - [ ] `launch/go2_navigation.launch.py` 작성

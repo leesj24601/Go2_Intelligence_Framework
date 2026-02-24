@@ -90,6 +90,30 @@ def generate_launch_description():
         arguments=["-d"] if localization == "false" else [],
     )
 
+    # Phase 2: Depth → LaserScan 변환
+    # 카메라 위치: base_link 기준 x=0.30, z=0.05 (지면에서 약 0.33m)
+    # 이미지 해상도: 240×320, 중앙 행(row 120) 근처가 수평면
+    depthimage_to_laserscan = Node(
+        package="depthimage_to_laserscan",
+        executable="depthimage_to_laserscan_node",
+        name="depthimage_to_laserscan",
+        parameters=[
+            {
+                "scan_height": 10,       # 중앙 10행 평균 → 수평면 노이즈 감소
+                "scan_time": 0.1,        # 10Hz (depth와 동일)
+                "range_min": 0.2,
+                "range_max": 5.0,
+                "output_frame": "camera_link",
+                "use_sim_time": use_sim_time,
+            }
+        ],
+        remappings=[
+            ("depth", "/camera/depth/image_rect_raw"),
+            ("depth_camera_info", "/camera/camera_info"),
+            ("scan", "/scan"),
+        ],
+    )
+
     return LaunchDescription(
         [
             DeclareLaunchArgument(
@@ -104,6 +128,7 @@ def generate_launch_description():
             ),
             base_to_camera_tf,
             camera_to_optical_tf,
+            depthimage_to_laserscan,
             rtabmap_node,
         ]
     )
