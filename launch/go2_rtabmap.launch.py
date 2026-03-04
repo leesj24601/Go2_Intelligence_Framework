@@ -8,6 +8,8 @@ from launch_ros.actions import Node
 def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
     localization = LaunchConfiguration("localization")
+    slam_db = LaunchConfiguration("slam_db")
+    localization_db = LaunchConfiguration("localization_db")
 
     camera_remappings = [
         ("rgb/image", "/camera/color/image_raw"),
@@ -39,9 +41,8 @@ def generate_launch_description():
         ],
     )
 
-    # 공통 파라미터
+    # 공통 파라미터 (database_path는 모드별로 아래 각 노드에서 개별 지정)
     _rtabmap_common_params = {
-        "database_path": "/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap.db",
         "frame_id": "camera_link",
         "map_frame_id": "map",
         "odom_frame_id": "odom",
@@ -77,13 +78,17 @@ def generate_launch_description():
         "Rtabmap/ImageBufferSize": "1",
     }
 
+    # odom 소스:
+    #   시뮬: Isaac Sim OmniGraph (IsaacComputeOdometry) → /odom (ground truth)
+    #   실로봇: unitree_ros2 LiDAR+IMU 퓨전 → /odom 또는 /utlidar/robot_odom
+    #           (연결 후 토픽명 확인 필요, 다르면 아래 remapping 수정)
     _rtabmap_remappings = camera_remappings + [
         ("odom", "/odom"),
         ("imu", "/imu/data"),
     ]
 
     # SLAM 모드: 맵 생성 (localization=false, 기본값)
-    # -d 플래그로 기존 DB 초기화 후 새 맵 생성
+    # -d 플래그로 기존 slam_db 초기화 후 새 맵 생성
     rtabmap_slam_node = Node(
         package="rtabmap_slam",
         executable="rtabmap",
@@ -91,6 +96,7 @@ def generate_launch_description():
         condition=UnlessCondition(localization),
         parameters=[{
             **_rtabmap_common_params,
+            "database_path": slam_db,
             "Mem/IncrementalMemory": "true",
             "Mem/InitWMWithAllNodes": "false",
         }],
@@ -99,7 +105,7 @@ def generate_launch_description():
     )
 
     # Localization 모드: 저장된 맵 불러와 위치 추정만 (localization=true)
-    # DB를 read-only로 열어 맵 발행 + map→odom TF 발행
+    # localization_db를 read-only로 열어 맵 발행 + map→odom TF 발행
     rtabmap_localization_node = Node(
         package="rtabmap_slam",
         executable="rtabmap",
@@ -107,6 +113,7 @@ def generate_launch_description():
         condition=IfCondition(localization),
         parameters=[{
             **_rtabmap_common_params,
+            "database_path": localization_db,
             "Mem/IncrementalMemory": "false",      # 새 노드 추가 안 함
             "Mem/InitWMWithAllNodes": "true",       # DB 전체 로드
             "Rtabmap/DetectionRate": "2.0",         # 0.5 → 2.0Hz (빠른 재탐지)
@@ -154,6 +161,16 @@ def generate_launch_description():
                 "localization",
                 default_value="false",
                 description="Launch in localization mode",
+            ),
+            DeclareLaunchArgument(
+                "slam_db",
+                default_value="/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap.db",
+                description="DB path for SLAM mode (overwritten on each run)",
+            ),
+            DeclareLaunchArgument(
+                "localization_db",
+                default_value="/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_ground_truth.db",
+                description="DB path for localization mode (read-only, not overwritten)",
             ),
             base_to_camera_tf,
             camera_to_optical_tf,

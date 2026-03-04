@@ -496,10 +496,24 @@ def main(env_cfg, agent_cfg):
             imu_ang_vel = imu.data.ang_vel_b[0].cpu().numpy()
             imu_lin_acc = imu.data.lin_acc_b[0].cpu().numpy()
             imu_quat_wxyz = imu.data.quat_w[0].cpu().numpy()
-            # Isaac Lab WXYZ → OmniGraph XYZW (IJKR)
-            imu_quat_xyzw = [imu_quat_wxyz[1], imu_quat_wxyz[2], imu_quat_wxyz[3], imu_quat_wxyz[0]]
+            # Isaac Lab WXYZ → OmniGraph XYZW (IJKR) 변환
+            # [중요] Isaac Sim과 ROS 간의 IMU 회전 방향(Handedness) 불일치 해결
+            # 로봇이 좌회전할 때 우회전으로 인식하는 "거짓말" 현상을 막기 위해 Y, Z축 부호 반전
+            imu_quat_xyzw = [
+                float(imu_quat_wxyz[1]),        # X
+                float(-imu_quat_wxyz[2]),       # Y (반전)
+                float(-imu_quat_wxyz[3]),       # Z (반전)
+                float(imu_quat_wxyz[0])         # W
+            ]
+            
+            # 각속도(Angular Velocity) 역시 ROS 표준에 맞게 Y, Z축 반전
+            imu_ang_vel_ros = [
+                float(imu_ang_vel[0]),
+                float(-imu_ang_vel[1]),
+                float(-imu_ang_vel[2])
+            ]
 
-            og.Controller.set(_imu_attr("angularVelocity"), imu_ang_vel.tolist())
+            og.Controller.set(_imu_attr("angularVelocity"), imu_ang_vel_ros)
             og.Controller.set(_imu_attr("linearAcceleration"), imu_lin_acc.tolist())
             og.Controller.set(_imu_attr("orientation"), imu_quat_xyzw)
         except Exception:
