@@ -134,7 +134,7 @@ class MySlamEnvCfg(UnitreeGo2RoughEnvCfg):
             # ...
         )
 ```
-> 💡 **Tip**: Make sure your custom USD file contains a proper `/World/ground` prim or adjust the `mesh_prim_paths` in the script accordingly so that sensors like the height scanner can detect floors and obstacles correctly.
+> 💡 **Tip**: Make sure your custom USD file contains a proper `/World/ground` prim or adjust the `mesh_prim_paths` in the environment script. This is essential for proper physics collision and ensures the robot and sensors can interact with the environment correctly.
 
 ---
 
