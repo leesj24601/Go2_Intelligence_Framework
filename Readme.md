@@ -213,12 +213,22 @@ rviz2 -d config/go2_sim.rviz
 ### 3. Autonomous Navigation (Nav2)
 Integration with ROS 2 Nav2 stack for autonomous waypoint navigation and obstacle avoidance within the mapped environment.
 
-#### 🎥 Demonstration Video
+#### 🎥 Demonstration Videos
+
+**1. Autonomous Waypoint Navigation**
 <div align="center">
   <a href="https://youtu.be/J8-3K4dXg9A">
     <img src="https://img.youtube.com/vi/J8-3K4dXg9A/0.jpg" alt="Nav2 Autonomous Navigation Demonstration" width="600">
   </a>
-  <p><i>Click the image to watch the Nav2 demonstration in action.</i></p>
+  <p><i>Click the image to watch the Nav2 autonomous navigation in action.</i></p>
+</div>
+
+**2. Unmapped Static Obstacle Avoidance**
+<div align="center">
+  <a href="https://youtu.be/W1dHQUZ_irs">
+    <img src="https://img.youtube.com/vi/W1dHQUZ_irs/0.jpg" alt="Nav2 Obstacle Avoidance Demonstration" width="600">
+  </a>
+  <p><i>Click the image to watch the robot avoid unmapped static obstacles in real-time.</i></p>
 </div>
 
 > 🗺️ **Map Dependency**: The Nav2 module is pre-configured to automatically load the map from **`maps/rtabmap_ground_truth.db`**. Please ensure you have completed the mapping process and renamed your database file as described in the SLAM section before running navigation.
