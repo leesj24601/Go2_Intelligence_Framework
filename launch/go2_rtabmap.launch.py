@@ -127,7 +127,7 @@ def generate_launch_description():
             "Kp/MaxFeatures": "1000",               # 특징점 수 2배 (500 → 1000)
         }],
         remappings=_rtabmap_remappings,
-        arguments=[],  # -d 없음 → 기존 DB 유지
+        arguments=[],  # -d 없음 → 기존 DB 유지함
     )
 
     # Phase 2: Depth → LaserScan 변환
