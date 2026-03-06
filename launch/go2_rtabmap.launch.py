@@ -131,7 +131,7 @@ def generate_launch_description():
     )
 
     # Phase 2: Depth → LaserScan 변환
-    # 카메라 위치: base_link 기준 x=0.30, z=0.05 (지면에서 약 0.33m)
+    # 카메라 위치: base_link 기준 x=0.30, z=0.05(지면에서 약 0.33m)
     # 이미지 해상도: 240×320, 중앙 행(row 120) 근처가 수평면
     depthimage_to_laserscan = Node(
         package="depthimage_to_laserscan",
