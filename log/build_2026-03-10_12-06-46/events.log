@@ -1,0 +1,363 @@
+[0.000000] (-) TimerEvent: {}
+[0.000178] (go2_gui_controller) JobQueued: {'identifier': 'go2_gui_controller', 'dependencies': OrderedDict()}
+[0.000256] (go2_gui_controller) JobStarted: {'identifier': 'go2_gui_controller'}
+[0.099878] (-) TimerEvent: {}
+[0.200039] (-) TimerEvent: {}
+[0.300196] (-) TimerEvent: {}
+[0.400354] (-) TimerEvent: {}
+[0.452878] (go2_gui_controller) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../build/go2_gui_controller', 'build', '--build-base', '/home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build', 'install', '--record', '/home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/home/cvr/Desktop/sj/go2_intelligence_framework/go2_gui_controller', 'env': {'GJS_DEBUG_TOPICS': 'JS ERROR;JS LOG', 'PYTHON_BASIC_REPL': '1', 'LESSOPEN': '| /usr/bin/lesspipe %s', 'CODEX_CI': '1', 'LANGUAGE': 'ko:en', 'USER': 'cvr', 'LC_TIME': 'ko_KR.UTF-8', 'XDG_SESSION_TYPE': 'x11', 'GIT_ASKPASS': '/usr/share/antigravity/resources/app/extensions/git/dist/askpass.sh', 'BUN_INSTALL': '/home/cvr/.bun', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/usr/local/cuda-12.4/lib64:/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/usr/local/cuda-12.4/lib64::/usr/local/lib:/usr/local/lib', 'ANTIGRAVITY_CLI_ALIAS': 'agy', 'HOME': '/home/cvr', 'CHROME_DESKTOP': 'antigravity.desktop', 'CONDA_SHLVL': '0', 'TERM_PROGRAM_VERSION': '1.107.0', 'DESKTOP_SESSION': 'ubuntu', 'NVM_BIN': '/home/cvr/.nvm/versions/node/v22.17.0/bin', 'NVM_INC': '/home/cvr/.nvm/versions/node/v22.17.0/include/node', 'GIO_LAUNCHED_DESKTOP_FILE': '/usr/share/applications/antigravity.desktop', 'ROS_PYTHON_VERSION': '3', 'GNOME_SHELL_SESSION_MODE': 'ubuntu', 'GTK_MODULES': 'gail:atk-bridge', 'PAGER': 'cat', 'VSCODE_GIT_ASKPASS_MAIN': '/usr/share/antigravity/resources/app/extensions/git/dist/askpass-main.js', 'LC_MONETARY': 'ko_KR.UTF-8', 'VSCODE_GIT_ASKPASS_NODE': '/usr/share/antigravity/antigravity', 'MANAGERPID': '3609', 'LC_CTYPE': 'C.UTF-8', 'PYDEVD_DISABLE_FILE_VALIDATION': '1', 'SYSTEMD_EXEC_PID': '3372935', 'BUNDLED_DEBUGPY_PATH': '/home/cvr/.antigravity/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/libs/debugpy', 'VSCODE_PYTHON_AUTOACTIVATE_GUARD': '1', 'NO_COLOR': '1', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', '_CE_M': '', 'GIO_LAUNCHED_DESKTOP_FILE_PID': '760394', 'NVM_DIR': '/home/cvr/.nvm', 'IM_CONFIG_PHASE': '1', 'ROS_DISTRO': 'humble', 'GTK_IM_MODULE': 'ibus', 'LOGNAME': 'cvr', 'JOURNAL_STREAM': '8:170162927', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'CONDA_AUTO_ACTIVATE_BASE': 'false', 'CLAUDE_CODE_SSE_PORT': '37655', 'XDG_SESSION_CLASS': 'user', 'USERNAME': 'cvr', 'TERM': 'xterm-256color', 'GNOME_DESKTOP_SESSION_ID': 'this-is-deprecated', '_CE_CONDA': '', 'FC_FONTATIONS': '1', 'ROS_LOCALHOST_ONLY': '0', 'WINDOWPATH': '2', 'PATH': '/home/cvr/.local/bin:/home/cvr/.codex/tmp/arg0/codex-arg0qNc8RC:/home/cvr/.nvm/versions/node/v22.17.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/path:/home/cvr/.bun/bin:/home/cvr/.opencode/bin:/usr/local/cuda-12.4/bin:/home/cvr/.local/bin:/home/cvr/.bun/bin:/home/cvr/.opencode/bin:/opt/ros/humble/bin:/home/cvr/.nvm/versions/node/v22.17.0/bin:/home/cvr/anaconda3/condabin:/usr/local/cuda-12.4/bin:/home/cvr/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin:/home/cvr/.antigravity/extensions/ms-python.debugpy-2025.18.0-linux-x64/bundled/scripts/noConfigScripts', 'SESSION_MANAGER': 'local/cvr1:@/tmp/.ICE-unix/4002,unix/cvr1:/tmp/.ICE-unix/4002', 'INVOCATION_ID': 'c1cc158a31c04439adac79382586eb96', 'PAPERSIZE': 'a4', 'XDG_MENU_PREFIX': 'gnome-', 'LC_ADDRESS': 'ko_KR.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'GDK_BACKEND': 'x11', 'DISPLAY': ':1', 'CODEX_SANDBOX_NETWORK_DISABLED': '1', 'VSCODE_DEBUGPY_ADAPTER_ENDPOINTS': '/home/cvr/.antigravity/extensions/ms-python.debugpy-2025.18.0-linux-x64/.noConfigDebugAdapterEndpoints/endpoint-b3628f207aa9f125.txt', 'LANG': 'ko_KR.UTF-8', 'XDG_CURRENT_DESKTOP': 'ubuntu:GNOME', 'PYTHONSTARTUP': '/home/cvr/.config/Antigravity/User/workspaceStorage/fd21ef3919d383176b86016c91d31db1/ms-python.python/pythonrc.py', 'LC_TELEPHONE': 'ko_KR.UTF-8', 'XMODIFIERS': '@im=ibus', 'GH_PAGER': 'cat', 'XDG_SESSION_DESKTOP': 'ubuntu', 'XAUTHORITY': '/run/user/1000/gdm/Xauthority', 'LS_COLORS': 'rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:', 'VSCODE_GIT_IPC_HANDLE': '/run/user/1000/vscode-git-440f1d81e1.sock', 'TERM_PROGRAM': 'vscode', 'SSH_AGENT_LAUNCHER': 'gnome-keyring', 'SSH_AUTH_SOCK': '/run/user/1000/keyring/ssh', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'CONDA_PYTHON_EXE': '/home/cvr/anaconda3/bin/python', 'SHELL': '/bin/bash', 'LC_NAME': 'ko_KR.UTF-8', 'QT_ACCESSIBILITY': '1', 'GDMSESSION': 'ubuntu', 'Torch_DIR': '/home/cvr/Desktop/unitree/rl_sar/libtorch', 'LESSCLOSE': '/usr/bin/lesspipe %s %s', 'CODEX_THREAD_ID': '019cd1dc-ef19-7310-b985-364dbf63f0be', 'LC_MEASUREMENT': 'ko_KR.UTF-8', 'GPG_AGENT_INFO': '/run/user/1000/gnupg/S.gpg-agent:0:1', 'GJS_DEBUG_OUTPUT': 'stderr', 'LC_IDENTIFICATION': 'ko_KR.UTF-8', 'VSCODE_GIT_ASKPASS_EXTRA_ARGS': '', 'GIT_PAGER': 'cat', 'QT_IM_MODULE': 'ibus', 'PWD': '/home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller', 'LC_ALL': 'en_US.UTF-8', 'XDG_CONFIG_DIRS': '/etc/xdg/xdg-ubuntu:/etc/xdg', 'CONDA_EXE': '/home/cvr/anaconda3/bin/conda', 'NVM_CD_FLAGS': '', 'XDG_DATA_DIRS': '/usr/share/ubuntu:/usr/share/gnome:/home/cvr/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/:/var/lib/snapd/desktop', 'PYTHONPATH': '/home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages', 'LC_NUMERIC': 'ko_KR.UTF-8', 'LC_PAPER': 'ko_KR.UTF-8', 'COLCON': '1', 'CODEX_MANAGED_BY_NPM': '1'}, 'shell': False}
+[0.500428] (-) TimerEvent: {}
+[0.574438] (go2_gui_controller) StdoutLine: {'line': b'running egg_info\n'}
+[0.581824] (go2_gui_controller) StdoutLine: {'line': b'creating ../build/go2_gui_controller/go2_gui_controller.egg-info\n'}
+[0.581994] (go2_gui_controller) StdoutLine: {'line': b'writing ../build/go2_gui_controller/go2_gui_controller.egg-info/PKG-INFO\n'}
+[0.582478] (go2_gui_controller) StdoutLine: {'line': b'writing dependency_links to ../build/go2_gui_controller/go2_gui_controller.egg-info/dependency_links.txt\n'}
+[0.582616] (go2_gui_controller) StdoutLine: {'line': b'writing entry points to ../build/go2_gui_controller/go2_gui_controller.egg-info/entry_points.txt\n'}
+[0.582750] (go2_gui_controller) StdoutLine: {'line': b'writing requirements to ../build/go2_gui_controller/go2_gui_controller.egg-info/requires.txt\n'}
+[0.582853] (go2_gui_controller) StdoutLine: {'line': b'writing top-level names to ../build/go2_gui_controller/go2_gui_controller.egg-info/top_level.txt\n'}
+[0.582999] (go2_gui_controller) StdoutLine: {'line': b"writing manifest file '../build/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'\n"}
+[0.599090] (go2_gui_controller) StdoutLine: {'line': b"reading manifest file '../build/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'\n"}
+[0.599616] (go2_gui_controller) StdoutLine: {'line': b"writing manifest file '../build/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'\n"}
+[0.599721] (go2_gui_controller) StdoutLine: {'line': b'running build\n'}
+[0.599777] (go2_gui_controller) StdoutLine: {'line': b'running build_py\n'}
+[0.599854] (go2_gui_controller) StdoutLine: {'line': b'creating /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.599947] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/text_command_parser.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600018] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/commands.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600065] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/navigator_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600109] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/waypoint_registry.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600150] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/__init__.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600189] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/gui_app.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600230] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/main.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600273] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/manual_control.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600316] (go2_gui_controller) StdoutLine: {'line': b'copying go2_gui_controller/state_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller\n'}
+[0.600474] (go2_gui_controller) StdoutLine: {'line': b'running install\n'}
+[0.600495] (-) TimerEvent: {}
+[0.602530] (go2_gui_controller) StdoutLine: {'line': b'running install_lib\n'}
+[0.610471] (go2_gui_controller) StdoutLine: {'line': b'creating /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610596] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/text_command_parser.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610642] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/commands.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610687] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/navigator_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610746] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/waypoint_registry.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610771] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/__init__.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610794] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/gui_app.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610816] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/main.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610858] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/manual_control.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.610878] (go2_gui_controller) StdoutLine: {'line': b'copying /home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/build/lib/go2_gui_controller/state_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller\n'}
+[0.611031] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/text_command_parser.py to text_command_parser.cpython-310.pyc\n'}
+[0.611681] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/commands.py to commands.cpython-310.pyc\n'}
+[0.611824] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/navigator_bridge.py to navigator_bridge.cpython-310.pyc\n'}
+[0.612234] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/waypoint_registry.py to waypoint_registry.cpython-310.pyc\n'}
+[0.612791] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/__init__.py to __init__.cpython-310.pyc\n'}
+[0.612865] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/gui_app.py to gui_app.cpython-310.pyc\n'}
+[0.614159] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/main.py to main.cpython-310.pyc\n'}
+[0.614262] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/manual_control.py to manual_control.cpython-310.pyc\n'}
+[0.614411] (go2_gui_controller) StdoutLine: {'line': b'byte-compiling /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller/state_bridge.py to state_bridge.cpython-310.pyc\n'}
+[0.614720] (go2_gui_controller) StdoutLine: {'line': b'running install_data\n'}
+[0.614835] (go2_gui_controller) StdoutLine: {'line': b'creating /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/ament_index/resource_index/packages\n'}
+[0.614926] (go2_gui_controller) StdoutLine: {'line': b'copying resource/go2_gui_controller -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/ament_index/resource_index/packages\n'}
+[0.614988] (go2_gui_controller) StdoutLine: {'line': b'creating /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/go2_gui_controller\n'}
+[0.615026] (go2_gui_controller) StdoutLine: {'line': b'copying package.xml -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/go2_gui_controller\n'}
+[0.615078] (go2_gui_controller) StdoutLine: {'line': b'creating /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/go2_gui_controller/config\n'}
+[0.615117] (go2_gui_controller) StdoutLine: {'line': b'copying config/waypoints.yaml -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/go2_gui_controller/config\n'}
+[0.615162] (go2_gui_controller) StdoutLine: {'line': b'creating /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/go2_gui_controller/launch\n'}
+[0.615205] (go2_gui_controller) StdoutLine: {'line': b'copying launch/go2_gui_controller.launch.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/share/go2_gui_controller/launch\n'}
+[0.615273] (go2_gui_controller) StdoutLine: {'line': b'running install_egg_info\n'}
+[0.623550] (go2_gui_controller) StdoutLine: {'line': b'Copying ../build/go2_gui_controller/go2_gui_controller.egg-info to /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/lib/python3.10/site-packages/go2_gui_controller-0.1.0-py3.10.egg-info\n'}
+[0.624127] (go2_gui_controller) StdoutLine: {'line': b'running install_scripts\n'}
+[0.688457] (go2_gui_controller) StdoutLine: {'line': b'Installing gui_controller script to /home/cvr/Desktop/sj/go2_intelligence_framework/install/go2_gui_controller/bin\n'}
+[0.688704] (go2_gui_controller) StdoutLine: {'line': b"writing list of installed files to '/home/cvr/Desktop/sj/go2_intelligence_framework/build/go2_gui_controller/install.log'\n"}
+[0.700584] (-) TimerEvent: {}
+[0.800722] (-) TimerEvent: {}
+[0.900902] (-) TimerEvent: {}
+[1.001055] (-) TimerEvent: {}
+[1.101235] (-) TimerEvent: {}
+[1.201866] (-) TimerEvent: {}
+[1.302059] (-) TimerEvent: {}
+[1.402216] (-) TimerEvent: {}
+[1.502357] (-) TimerEvent: {}
+[1.602509] (-) TimerEvent: {}
+[1.702704] (-) TimerEvent: {}
+[1.802950] (-) TimerEvent: {}
+[1.903951] (-) TimerEvent: {}
+[2.004180] (-) TimerEvent: {}
+[2.104373] (-) TimerEvent: {}
+[2.204526] (-) TimerEvent: {}
+[2.304673] (-) TimerEvent: {}
+[2.404875] (-) TimerEvent: {}
+[2.505016] (-) TimerEvent: {}
+[2.605149] (-) TimerEvent: {}
+[2.705288] (-) TimerEvent: {}
+[2.805431] (-) TimerEvent: {}
+[2.905599] (-) TimerEvent: {}
+[3.005723] (-) TimerEvent: {}
+[3.105863] (-) TimerEvent: {}
+[3.206009] (-) TimerEvent: {}
+[3.306159] (-) TimerEvent: {}
+[3.406308] (-) TimerEvent: {}
+[3.506463] (-) TimerEvent: {}
+[3.606612] (-) TimerEvent: {}
+[3.706723] (-) TimerEvent: {}
+[3.806864] (-) TimerEvent: {}
+[3.907006] (-) TimerEvent: {}
+[4.007145] (-) TimerEvent: {}
+[4.107288] (-) TimerEvent: {}
+[4.207429] (-) TimerEvent: {}
+[4.307575] (-) TimerEvent: {}
+[4.407716] (-) TimerEvent: {}
+[4.507855] (-) TimerEvent: {}
+[4.608005] (-) TimerEvent: {}
+[4.708186] (-) TimerEvent: {}
+[4.808346] (-) TimerEvent: {}
+[4.908502] (-) TimerEvent: {}
+[5.008646] (-) TimerEvent: {}
+[5.108798] (-) TimerEvent: {}
+[5.208950] (-) TimerEvent: {}
+[5.309097] (-) TimerEvent: {}
+[5.409282] (-) TimerEvent: {}
+[5.509456] (-) TimerEvent: {}
+[5.609644] (-) TimerEvent: {}
+[5.709800] (-) TimerEvent: {}
+[5.809942] (-) TimerEvent: {}
+[5.910084] (-) TimerEvent: {}
+[6.010223] (-) TimerEvent: {}
+[6.110363] (-) TimerEvent: {}
+[6.210506] (-) TimerEvent: {}
+[6.310646] (-) TimerEvent: {}
+[6.410792] (-) TimerEvent: {}
+[6.510934] (-) TimerEvent: {}
+[6.611078] (-) TimerEvent: {}
+[6.711225] (-) TimerEvent: {}
+[6.811363] (-) TimerEvent: {}
+[6.911500] (-) TimerEvent: {}
+[7.011635] (-) TimerEvent: {}
+[7.111780] (-) TimerEvent: {}
+[7.211916] (-) TimerEvent: {}
+[7.312053] (-) TimerEvent: {}
+[7.412192] (-) TimerEvent: {}
+[7.512334] (-) TimerEvent: {}
+[7.612487] (-) TimerEvent: {}
+[7.712630] (-) TimerEvent: {}
+[7.812776] (-) TimerEvent: {}
+[7.912917] (-) TimerEvent: {}
+[8.013106] (-) TimerEvent: {}
+[8.113318] (-) TimerEvent: {}
+[8.213478] (-) TimerEvent: {}
+[8.313621] (-) TimerEvent: {}
+[8.413724] (-) TimerEvent: {}
+[8.513867] (-) TimerEvent: {}
+[8.614027] (-) TimerEvent: {}
+[8.714172] (-) TimerEvent: {}
+[8.814314] (-) TimerEvent: {}
+[8.914455] (-) TimerEvent: {}
+[9.014588] (-) TimerEvent: {}
+[9.114725] (-) TimerEvent: {}
+[9.214866] (-) TimerEvent: {}
+[9.315002] (-) TimerEvent: {}
+[9.415142] (-) TimerEvent: {}
+[9.515303] (-) TimerEvent: {}
+[9.615442] (-) TimerEvent: {}
+[9.715584] (-) TimerEvent: {}
+[9.815723] (-) TimerEvent: {}
+[9.915863] (-) TimerEvent: {}
+[10.016005] (-) TimerEvent: {}
+[10.116146] (-) TimerEvent: {}
+[10.216288] (-) TimerEvent: {}
+[10.316426] (-) TimerEvent: {}
+[10.416565] (-) TimerEvent: {}
+[10.516712] (-) TimerEvent: {}
+[10.616856] (-) TimerEvent: {}
+[10.716998] (-) TimerEvent: {}
+[10.817139] (-) TimerEvent: {}
+[10.917275] (-) TimerEvent: {}
+[11.017416] (-) TimerEvent: {}
+[11.117556] (-) TimerEvent: {}
+[11.217695] (-) TimerEvent: {}
+[11.317831] (-) TimerEvent: {}
+[11.417971] (-) TimerEvent: {}
+[11.518126] (-) TimerEvent: {}
+[11.618290] (-) TimerEvent: {}
+[11.718430] (-) TimerEvent: {}
+[11.818571] (-) TimerEvent: {}
+[11.918711] (-) TimerEvent: {}
+[12.018852] (-) TimerEvent: {}
+[12.118989] (-) TimerEvent: {}
+[12.219142] (-) TimerEvent: {}
+[12.319282] (-) TimerEvent: {}
+[12.419420] (-) TimerEvent: {}
+[12.519558] (-) TimerEvent: {}
+[12.619705] (-) TimerEvent: {}
+[12.719871] (-) TimerEvent: {}
+[12.820048] (-) TimerEvent: {}
+[12.920190] (-) TimerEvent: {}
+[13.020333] (-) TimerEvent: {}
+[13.120473] (-) TimerEvent: {}
+[13.220617] (-) TimerEvent: {}
+[13.320723] (-) TimerEvent: {}
+[13.420862] (-) TimerEvent: {}
+[13.521002] (-) TimerEvent: {}
+[13.621141] (-) TimerEvent: {}
+[13.721283] (-) TimerEvent: {}
+[13.821421] (-) TimerEvent: {}
+[13.921558] (-) TimerEvent: {}
+[14.021701] (-) TimerEvent: {}
+[14.121840] (-) TimerEvent: {}
+[14.221980] (-) TimerEvent: {}
+[14.322123] (-) TimerEvent: {}
+[14.422263] (-) TimerEvent: {}
+[14.522404] (-) TimerEvent: {}
+[14.622544] (-) TimerEvent: {}
+[14.722690] (-) TimerEvent: {}
+[14.822827] (-) TimerEvent: {}
+[14.923034] (-) TimerEvent: {}
+[15.023181] (-) TimerEvent: {}
+[15.123325] (-) TimerEvent: {}
+[15.223462] (-) TimerEvent: {}
+[15.323600] (-) TimerEvent: {}
+[15.423740] (-) TimerEvent: {}
+[15.523879] (-) TimerEvent: {}
+[15.624014] (-) TimerEvent: {}
+[15.724156] (-) TimerEvent: {}
+[15.824311] (-) TimerEvent: {}
+[15.924468] (-) TimerEvent: {}
+[16.024616] (-) TimerEvent: {}
+[16.124766] (-) TimerEvent: {}
+[16.224902] (-) TimerEvent: {}
+[16.325038] (-) TimerEvent: {}
+[16.425177] (-) TimerEvent: {}
+[16.525309] (-) TimerEvent: {}
+[16.625443] (-) TimerEvent: {}
+[16.725584] (-) TimerEvent: {}
+[16.825726] (-) TimerEvent: {}
+[16.925865] (-) TimerEvent: {}
+[17.026008] (-) TimerEvent: {}
+[17.126150] (-) TimerEvent: {}
+[17.226289] (-) TimerEvent: {}
+[17.326472] (-) TimerEvent: {}
+[17.426617] (-) TimerEvent: {}
+[17.526737] (-) TimerEvent: {}
+[17.626884] (-) TimerEvent: {}
+[17.727025] (-) TimerEvent: {}
+[17.827181] (-) TimerEvent: {}
+[17.927323] (-) TimerEvent: {}
+[18.027481] (-) TimerEvent: {}
+[18.127647] (-) TimerEvent: {}
+[18.227794] (-) TimerEvent: {}
+[18.327939] (-) TimerEvent: {}
+[18.428099] (-) TimerEvent: {}
+[18.528297] (-) TimerEvent: {}
+[18.628472] (-) TimerEvent: {}
+[18.728667] (-) TimerEvent: {}
+[18.828817] (-) TimerEvent: {}
+[18.928962] (-) TimerEvent: {}
+[19.029098] (-) TimerEvent: {}
+[19.129236] (-) TimerEvent: {}
+[19.229377] (-) TimerEvent: {}
+[19.329521] (-) TimerEvent: {}
+[19.429662] (-) TimerEvent: {}
+[19.529814] (-) TimerEvent: {}
+[19.629951] (-) TimerEvent: {}
+[19.730105] (-) TimerEvent: {}
+[19.830270] (-) TimerEvent: {}
+[19.930410] (-) TimerEvent: {}
+[20.030550] (-) TimerEvent: {}
+[20.130700] (-) TimerEvent: {}
+[20.230851] (-) TimerEvent: {}
+[20.330997] (-) TimerEvent: {}
+[20.431136] (-) TimerEvent: {}
+[20.531276] (-) TimerEvent: {}
+[20.631413] (-) TimerEvent: {}
+[20.731553] (-) TimerEvent: {}
+[20.831697] (-) TimerEvent: {}
+[20.931841] (-) TimerEvent: {}
+[21.031982] (-) TimerEvent: {}
+[21.132121] (-) TimerEvent: {}
+[21.232263] (-) TimerEvent: {}
+[21.332401] (-) TimerEvent: {}
+[21.432540] (-) TimerEvent: {}
+[21.532680] (-) TimerEvent: {}
+[21.632821] (-) TimerEvent: {}
+[21.733018] (-) TimerEvent: {}
+[21.833176] (-) TimerEvent: {}
+[21.933323] (-) TimerEvent: {}
+[22.033472] (-) TimerEvent: {}
+[22.133624] (-) TimerEvent: {}
+[22.233725] (-) TimerEvent: {}
+[22.333866] (-) TimerEvent: {}
+[22.434005] (-) TimerEvent: {}
+[22.534143] (-) TimerEvent: {}
+[22.634290] (-) TimerEvent: {}
+[22.734440] (-) TimerEvent: {}
+[22.834593] (-) TimerEvent: {}
+[22.934723] (-) TimerEvent: {}
+[23.034866] (-) TimerEvent: {}
+[23.135002] (-) TimerEvent: {}
+[23.235121] (-) TimerEvent: {}
+[23.335248] (-) TimerEvent: {}
+[23.435399] (-) TimerEvent: {}
+[23.535553] (-) TimerEvent: {}
+[23.635699] (-) TimerEvent: {}
+[23.735839] (-) TimerEvent: {}
+[23.835986] (-) TimerEvent: {}
+[23.936128] (-) TimerEvent: {}
+[24.036269] (-) TimerEvent: {}
+[24.136422] (-) TimerEvent: {}
+[24.236536] (-) TimerEvent: {}
+[24.336682] (-) TimerEvent: {}
+[24.436844] (-) TimerEvent: {}
+[24.537013] (-) TimerEvent: {}
+[24.637168] (-) TimerEvent: {}
+[24.737309] (-) TimerEvent: {}
+[24.837427] (-) TimerEvent: {}
+[24.937553] (-) TimerEvent: {}
+[25.037700] (-) TimerEvent: {}
+[25.137832] (-) TimerEvent: {}
+[25.237984] (-) TimerEvent: {}
+[25.338133] (-) TimerEvent: {}
+[25.438287] (-) TimerEvent: {}
+[25.538430] (-) TimerEvent: {}
+[25.638571] (-) TimerEvent: {}
+[25.738706] (-) TimerEvent: {}
+[25.838842] (-) TimerEvent: {}
+[25.938981] (-) TimerEvent: {}
+[26.039108] (-) TimerEvent: {}
+[26.139235] (-) TimerEvent: {}
+[26.239374] (-) TimerEvent: {}
+[26.339517] (-) TimerEvent: {}
+[26.439661] (-) TimerEvent: {}
+[26.539812] (-) TimerEvent: {}
+[26.639958] (-) TimerEvent: {}
+[26.740105] (-) TimerEvent: {}
+[26.840253] (-) TimerEvent: {}
+[26.940411] (-) TimerEvent: {}
+[27.040554] (-) TimerEvent: {}
+[27.140706] (-) TimerEvent: {}
+[27.240851] (-) TimerEvent: {}
+[27.340989] (-) TimerEvent: {}
+[27.441122] (-) TimerEvent: {}
+[27.541267] (-) TimerEvent: {}
+[27.641422] (-) TimerEvent: {}
+[27.741570] (-) TimerEvent: {}
+[27.841727] (-) TimerEvent: {}
+[27.941869] (-) TimerEvent: {}
+[28.042014] (-) TimerEvent: {}
+[28.142157] (-) TimerEvent: {}
+[28.242319] (-) TimerEvent: {}
+[28.342496] (-) TimerEvent: {}
+[28.442640] (-) TimerEvent: {}
+[28.542784] (-) TimerEvent: {}
+[28.642930] (-) TimerEvent: {}
+[28.743074] (-) TimerEvent: {}
+[28.843225] (-) TimerEvent: {}
+[28.943371] (-) TimerEvent: {}
+[29.043517] (-) TimerEvent: {}
+[29.143659] (-) TimerEvent: {}
+[29.243799] (-) TimerEvent: {}
+[29.343941] (-) TimerEvent: {}
+[29.444085] (-) TimerEvent: {}
+[29.544227] (-) TimerEvent: {}
+[29.644367] (-) TimerEvent: {}
+[29.744508] (-) TimerEvent: {}
+[29.844650] (-) TimerEvent: {}
+[29.944770] (-) TimerEvent: {}
+[30.029041] (go2_gui_controller) CommandEnded: {'returncode': 0}
+[30.037428] (go2_gui_controller) JobEnded: {'identifier': 'go2_gui_controller', 'rc': 0}
+[30.037841] (-) EventReactorShutdown: {}

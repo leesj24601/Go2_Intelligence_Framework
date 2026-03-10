@@ -1,0 +1,34 @@
+[0.426s] Invoking command in '/home/cvr/Desktop/sj/go2_intelligence_framework/go2_gui_controller': PYTHONPATH=/home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build_merge/go2_gui_controller build --build-base /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build install --record /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/install.log --single-version-externally-managed install_data
+[0.560s] running egg_info
+[0.568s] writing ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/PKG-INFO
+[0.568s] writing dependency_links to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/dependency_links.txt
+[0.568s] writing entry points to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/entry_points.txt
+[0.568s] writing requirements to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/requires.txt
+[0.568s] writing top-level names to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/top_level.txt
+[0.591s] reading manifest file '../build_merge/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'
+[0.591s] writing manifest file '../build_merge/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'
+[0.591s] running build
+[0.591s] running build_py
+[0.591s] copying go2_gui_controller/text_command_parser.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/commands.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/navigator_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/waypoint_registry.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/__init__.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/gui_app.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/main.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/manual_control.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] copying go2_gui_controller/state_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+[0.592s] running install
+[0.594s] running install_lib
+[0.605s] running install_data
+[0.605s] copying resource/go2_gui_controller -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/ament_index/resource_index/packages
+[0.605s] copying package.xml -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/go2_gui_controller
+[0.605s] copying config/waypoints.yaml -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/go2_gui_controller/config
+[0.605s] copying launch/go2_gui_controller.launch.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/go2_gui_controller/launch
+[0.605s] running install_egg_info
+[0.615s] removing '/home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/lib/python3.10/site-packages/go2_gui_controller-0.1.0-py3.10.egg-info' (and everything under it)
+[0.615s] Copying ../build_merge/go2_gui_controller/go2_gui_controller.egg-info to /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/lib/python3.10/site-packages/go2_gui_controller-0.1.0-py3.10.egg-info
+[0.615s] running install_scripts
+[0.687s] Installing gui_controller script to /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/bin
+[0.688s] writing list of installed files to '/home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/install.log'
+[0.705s] Invoked command in '/home/cvr/Desktop/sj/go2_intelligence_framework/go2_gui_controller' returned '0': PYTHONPATH=/home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build_merge/go2_gui_controller build --build-base /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build install --record /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/install.log --single-version-externally-managed install_data

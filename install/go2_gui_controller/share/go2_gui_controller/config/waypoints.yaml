@@ -1,0 +1,13 @@
+waypoints:
+  home:
+    frame_id: map
+    x: 0.0
+    y: 0.0
+    yaw_deg: 0.0
+    aliases: [home, base, start, 홈, 시작점, 원점]
+  charger:
+    frame_id: map
+    x: 1.5
+    y: -0.5
+    yaw_deg: 180.0
+    aliases: [charger, dock, station, 충전소, 충전기, 도킹]

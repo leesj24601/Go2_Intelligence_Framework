@@ -326,6 +326,7 @@ velocity_smoother:
     smoothing_frequency: 20.0
     scale_velocities: false
     feedback: "OPEN_LOOP"
+    cmd_vel_in_topic: "cmd_vel_nav"
     max_velocity: [1.0, 0.4, 1.0]   # [x, y, theta] — unitree_rl_lab 기준
     min_velocity: [-0.5, -0.4, -1.0]
     max_accel: [2.5, 2.5, 3.2]

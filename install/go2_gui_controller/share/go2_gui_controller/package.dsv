@@ -1,0 +1,9 @@
+source;share/go2_gui_controller/hook/path.ps1
+source;share/go2_gui_controller/hook/path.dsv
+source;share/go2_gui_controller/hook/path.sh
+source;share/go2_gui_controller/hook/pythonpath.ps1
+source;share/go2_gui_controller/hook/pythonpath.dsv
+source;share/go2_gui_controller/hook/pythonpath.sh
+source;share/go2_gui_controller/hook/pythonscriptspath.ps1
+source;share/go2_gui_controller/hook/pythonscriptspath.dsv
+source;share/go2_gui_controller/hook/pythonscriptspath.sh

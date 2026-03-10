@@ -1,0 +1,32 @@
+running egg_info
+writing ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/PKG-INFO
+writing dependency_links to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/dependency_links.txt
+writing entry points to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/entry_points.txt
+writing requirements to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/requires.txt
+writing top-level names to ../build_merge/go2_gui_controller/go2_gui_controller.egg-info/top_level.txt
+reading manifest file '../build_merge/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'
+writing manifest file '../build_merge/go2_gui_controller/go2_gui_controller.egg-info/SOURCES.txt'
+running build
+running build_py
+copying go2_gui_controller/text_command_parser.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/commands.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/navigator_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/waypoint_registry.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/__init__.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/gui_app.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/main.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/manual_control.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+copying go2_gui_controller/state_bridge.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/build/lib/go2_gui_controller
+running install
+running install_lib
+running install_data
+copying resource/go2_gui_controller -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/ament_index/resource_index/packages
+copying package.xml -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/go2_gui_controller
+copying config/waypoints.yaml -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/go2_gui_controller/config
+copying launch/go2_gui_controller.launch.py -> /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/share/go2_gui_controller/launch
+running install_egg_info
+removing '/home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/lib/python3.10/site-packages/go2_gui_controller-0.1.0-py3.10.egg-info' (and everything under it)
+Copying ../build_merge/go2_gui_controller/go2_gui_controller.egg-info to /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/lib/python3.10/site-packages/go2_gui_controller-0.1.0-py3.10.egg-info
+running install_scripts
+Installing gui_controller script to /home/cvr/Desktop/sj/go2_intelligence_framework/install_merge/bin
+writing list of installed files to '/home/cvr/Desktop/sj/go2_intelligence_framework/build_merge/go2_gui_controller/install.log'
