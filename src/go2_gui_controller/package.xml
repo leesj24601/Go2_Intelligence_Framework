@@ -3,7 +3,7 @@
   <name>go2_gui_controller</name>
   <version>0.1.0</version>
   <description>GUI controller for Go2 navigation with Nav2 and manual control.</description>
-  <maintainer email="cvr@local">cvr</maintainer>
+  <maintainer email="liberties24601@gmail.com">cvr</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_python</buildtool_depend>

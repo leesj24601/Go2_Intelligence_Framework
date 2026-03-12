@@ -3,7 +3,7 @@
   <name>go2_project_dependencies</name>
   <version>0.1.0</version>
   <description>Dependency bundle for Go2 Intelligence Framework ROS packages.</description>
-  <maintainer email="cvr@local">cvr</maintainer>
+  <maintainer email="liberties24601@gmail.com">cvr</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

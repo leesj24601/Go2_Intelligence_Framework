@@ -17,7 +17,7 @@ setup(
     install_requires=["setuptools"],
     zip_safe=True,
     maintainer="cvr",
-    maintainer_email="cvr@local",
+    maintainer_email="liberties24601@gmail.com",
     description="GUI controller for Go2 navigation with Nav2 and manual control.",
     license="Apache-2.0",
     entry_points={
