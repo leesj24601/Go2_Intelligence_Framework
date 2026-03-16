@@ -48,6 +48,20 @@ Go2 4D LiDAR (Hesai / Unitree L1) + 내장 IMU
 
 **요약**: **odom = LiDAR+IMU**, **지도 = 카메라**
 
+### 운영 결론
+
+- **메인 개발 경로**
+  - 시뮬: ground truth `/odom`
+  - 실로봇: `/utlidar/robot_odom`
+- **실험 경로**
+  - 시뮬 LiDAR+IMU → Point-LIO / FAST-LIO / KISS-ICP
+  - 목적: 실기와 유사한 외부 odom 재현 가능성 검증
+
+즉 현재 프로젝트의 기본 전략은
+`sim = GT odom`, `real = vendor LiDAR odom`
+으로 두고,
+시뮬 LiDAR odom은 별도 연구 트랙으로 유지하는 것이다.
+
 ---
 
 ## 핵심 개념 구분: odom / 정합 / loop closure
@@ -130,6 +144,110 @@ RTAB-Map이 카메라 관측으로 현재 pose를 보정하며,
 - `rtabmap_odom` 노드 없음 → 추가 불필요
 - Isaac Sim OmniGraph가 `/odom` 직접 발행 → 그대로 사용
 - 시뮬에서 ground truth odom으로 visual SLAM 파이프라인 검증 가능
+
+---
+
+## 시뮬 LiDAR odom 실험 기록
+
+실기 Go2는 이미 `/utlidar/robot_odom`을 제공하므로,
+시뮬에서도 가능한 한 비슷하게
+`LiDAR + IMU -> 외부 odom -> RTAB-Map`
+구조를 재현하려는 실험을 진행했다.
+
+### 1. KISS-ICP 실험 결과
+
+시도한 구조:
+
+```text
+/utlidar/cloud (Isaac Sim raw PointCloud2)
+  -> KISS-ICP
+  -> /utlidar/robot_odom
+```
+
+결과:
+- 입력 토픽 구독은 정상
+- 그러나 odom이 수십~수백 m 단위로 급격히 튀는 발산 발생
+- `odom -> base_link` TF도 순간적으로 큰 오차를 보이며 RTAB-Map 맵이 멀리 떨어진 위치에 새로 생김
+
+해석:
+- Isaac Sim raw cloud는 KISS-ICP가 기대하는 일반적 회전형 LiDAR 입력과 완전히 같지 않았다.
+- self-hit, quadruped의 roll/pitch/z motion, 초기 registration 불안정이 겹치면 KISS가 pose를 잘못 누적했다.
+- 즉 **KISS-ICP는 현재 우리 Isaac Sim 입력에서 안정적인 기본 경로로 채택하지 않음**.
+
+### 2. Point-LIO / FAST-LIO 계열 실험 결과
+
+시도한 구조:
+
+```text
+/utlidar/cloud_timed + /imu/data
+  -> Point-LIO 계열
+  -> /utlidar/robot_odom
+```
+
+여기서 `/utlidar/cloud_timed`는 기본 Isaac `/utlidar/cloud`가 아니라,
+`x, y, z, intensity, ring, time`을 갖도록 별도 가공한 PointCloud2이다.
+
+결과:
+- `/utlidar/robot_odom` 생성 자체는 성공
+- `odom -> base_link` TF도 생성 가능
+- 그러나 초기에는
+  - 입력 point cloud 가공 비용이 너무 무거움
+  - sim FPS / IMU / LiDAR rate 저하
+  - 정지 상태에서도 odom drift / yaw jitter
+  - RTAB-Map 맵 중첩 및 ghost layer
+  가 발생했다.
+
+후속 조치:
+- `cloud_timed` downsample
+- per-frame output 사용
+- Point-LIO 파라미터 조정
+- raw odom을 2D filtered odom으로 재발행하여 RTAB-Map에는 planar pose만 제공
+
+개선 효과:
+- `/utlidar/robot_odom_raw` 대비 `/utlidar/robot_odom`은
+  - z 제거
+  - roll/pitch 제거
+  - yaw/xy jitter 감소
+- 정지 상태 odom 안정성은 유의미하게 개선
+
+남은 한계:
+- Isaac Sim에서 `time/ring/intensity` 있는 cloud를 만들기 위해
+  Python 경유 custom publisher가 필요했고, 이것이 성능 병목이 되었다.
+- 실기처럼 드라이버 단계에서 바로 LIO-friendly 입력을 받는 구조가 아니므로,
+  **시뮬에서 LIO를 메인 개발 경로로 유지하기엔 비용이 큼**.
+
+### 실패 원인 정리
+
+시뮬 LiDAR odom 실험이 메인 경로로 채택되지 않은 이유는 아래와 같다.
+
+1. **입력 형식 차이**
+   - 실기 Go2는 드라이버가 LIO 친화적인 데이터(`time/ring/intensity + IMU`)를 제공
+   - Isaac Sim 기본 cloud는 그렇지 않아 별도 변환 필요
+
+2. **브리지 성능 병목**
+   - `cloud_timed`를 Python에서 재패킹하면서 sim tick이 느려짐
+   - 결과적으로 LiDAR/IMU/odom 전체 주기가 흔들림
+
+3. **정지 상태 pose jitter**
+   - odom이 정지 중에도 수 cm, 수 deg 흔들리면 RTAB-Map이 같은 구조를 여러 위치에 삽입
+   - 이 현상은 단순 화질 저하가 아니라 **ghost layer / map island**의 직접 원인
+
+4. **시뮬-실기 역할 차이**
+   - 실기는 이미 `/utlidar/robot_odom`이 존재
+   - 시뮬은 odom 생성기까지 직접 구현해야 하므로 복잡도와 비용이 더 큼
+
+### 최종 판단
+
+- **시뮬 메인 경로**는 GT odom으로 유지
+- **실로봇 메인 경로**는 `/utlidar/robot_odom`
+- Point-LIO / FAST-LIO / KISS-ICP는
+  **시뮬 LiDAR odom 연구용 실험 경로**로만 유지
+
+즉 시뮬에서는
+`RTAB-Map / Nav2 / TF / GUI / launch 구조 검증`
+에 집중하고,
+실제 odom 품질과 ghost 여부는
+실로봇 `/utlidar/robot_odom`으로 최종 검증하는 전략을 채택한다.
 
 ---
 

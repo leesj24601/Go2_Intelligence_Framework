@@ -25,6 +25,8 @@ class ChartsPanel(QWidget):
         self._telemetry = telemetry
         self._joint_names: list[str] = []
         self._plot_widgets = []
+        self._motion_placeholder_x = [-self._telemetry.history_sec, 0.0]
+        self._motion_placeholder_y = [0.0, 0.0]
 
         layout = QVBoxLayout(self)
 
@@ -82,6 +84,7 @@ class ChartsPanel(QWidget):
             pen=pg.mkPen("#8c564b", width=2, style=pg.QtCore.Qt.DashLine),
             name="odom angular",
         )
+        self._apply_motion_placeholder_data()
         layout.addWidget(self.motion_plot)
 
     def refresh(self) -> None:
@@ -106,10 +109,10 @@ class ChartsPanel(QWidget):
 
         self.joint_position_curve.setData(position_x, position_y)
         self.joint_velocity_curve.setData(velocity_x, velocity_y)
-        self.cmd_linear_curve.setData(cmd_linear_x, cmd_linear_y)
-        self.odom_linear_curve.setData(odom_linear_x, odom_linear_y)
-        self.cmd_angular_curve.setData(cmd_angular_x, cmd_angular_y)
-        self.odom_angular_curve.setData(odom_angular_x, odom_angular_y)
+        self.cmd_linear_curve.setData(*self._series_or_placeholder(cmd_linear_x, cmd_linear_y))
+        self.odom_linear_curve.setData(*self._series_or_placeholder(odom_linear_x, odom_linear_y))
+        self.cmd_angular_curve.setData(*self._series_or_placeholder(cmd_angular_x, cmd_angular_y))
+        self.odom_angular_curve.setData(*self._series_or_placeholder(odom_angular_x, odom_angular_y))
 
         for plot_widget in self._plot_widgets:
             plot_widget.setXRange(-self._telemetry.history_sec, 0.0, padding=0.0)
@@ -133,6 +136,19 @@ class ChartsPanel(QWidget):
         plot_widget.showGrid(x=True, y=True, alpha=0.18)
         plot_widget.setLabel("left", y_label)
         plot_widget.setLabel("bottom", "seconds", units="ago")
-        plot_widget.addLegend()
+        legend = plot_widget.addLegend(offset=(12, 12))
+        legend.setBrush(pg.mkBrush("#fffdfa"))
+        legend.setPen(pg.mkPen("#d7cab8"))
         self._plot_widgets.append(plot_widget)
         return plot_widget
+
+    def _series_or_placeholder(self, x_values: list[float], y_values: list[float]) -> tuple[list[float], list[float]]:
+        if x_values and y_values:
+            return x_values, y_values
+        return self._motion_placeholder_x, self._motion_placeholder_y
+
+    def _apply_motion_placeholder_data(self) -> None:
+        self.cmd_linear_curve.setData(self._motion_placeholder_x, self._motion_placeholder_y)
+        self.odom_linear_curve.setData(self._motion_placeholder_x, self._motion_placeholder_y)
+        self.cmd_angular_curve.setData(self._motion_placeholder_x, self._motion_placeholder_y)
+        self.odom_angular_curve.setData(self._motion_placeholder_x, self._motion_placeholder_y)

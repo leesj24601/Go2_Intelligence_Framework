@@ -7,15 +7,15 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     localization = LaunchConfiguration("localization")
+    rgb_topic = LaunchConfiguration("rgb_topic")
+    depth_topic = LaunchConfiguration("depth_topic")
+    camera_info_topic = LaunchConfiguration("camera_info_topic")
+    odom_topic = LaunchConfiguration("odom_topic")
 
-    # RealSense D435i 토픽 리매핑
-    # roslaunch 인수: camera:=my_go2 align_depth:=true
-    # 네임스페이스: /my_go2/
-    # align_depth:=true 시 depth 토픽: /my_go2/aligned_depth_to_color/image_raw
     camera_remappings = [
-        ("rgb/image",       "/my_go2/color/image_raw"),
-        ("depth/image",     "/my_go2/aligned_depth_to_color/image_raw"),
-        ("rgb/camera_info", "/my_go2/color/camera_info"),
+        ("rgb/image", rgb_topic),
+        ("depth/image", depth_topic),
+        ("rgb/camera_info", camera_info_topic),
     ]
 
     # Static TF 1: base_link → camera_link
@@ -82,7 +82,7 @@ def generate_launch_description():
     }
 
     _rtabmap_remappings = camera_remappings + [
-        ("odom", "/utlidar/robot_odom"),   # Unitree LiDAR 기반 odom (150Hz, LIO-SAM)
+        ("odom", odom_topic),              # Unitree LiDAR 기반 odom (연결 후 실토픽 확인)
         # IMU 구독 없음 (subscribe_imu: False)
     ]
 
@@ -122,23 +122,23 @@ def generate_launch_description():
     )
 
     # Depth → LaserScan 변환
-    # D435i 기본 해상도: 640×480, 30Hz
-    # scan_height: 20행 (480 기준 중앙 약 4%) → 시뮬 10행(240 기준)과 동일 비율
+    # 현재 실기 설정: 424×240, 30Hz
+    # scan_height: 10행 (240 기준 중앙 약 4%) → 시뮬 설정과 같은 비율
     depthimage_to_laserscan = Node(
         package="depthimage_to_laserscan",
         executable="depthimage_to_laserscan_node",
         name="depthimage_to_laserscan",
         parameters=[{
-            "scan_height": 20,       # D435i 640×480 기준 (시뮬 240×320 → 10행)
-            "scan_time": 0.067,      # 15Hz (SSH roslaunch depth_fps:=15 color_fps:=15 기준)
+            "scan_height": 10,       # 240행 기준 중앙 10행 사용
+            "scan_time": 0.033,      # 30Hz
             "range_min": 0.3,        # D435i 최소 거리 (시뮬 0.2 → 0.3)
             "range_max": 4.0,        # D435i 실용 범위 (시뮬 5.0 → 4.0)
             "output_frame": "camera_link",
             "use_sim_time": False,
         }],
         remappings=[
-            ("depth", "/my_go2/aligned_depth_to_color/image_raw"),
-            ("depth_camera_info", "/my_go2/color/camera_info"),
+            ("depth", depth_topic),
+            ("depth_camera_info", camera_info_topic),
             ("scan", "/scan"),
         ],
     )
@@ -148,6 +148,26 @@ def generate_launch_description():
             "localization",
             default_value="false",
             description="SLAM 모드=false / Localization 모드=true",
+        ),
+        DeclareLaunchArgument(
+            "rgb_topic",
+            default_value="/camera/color/image_raw",
+            description="RGB image topic from the real camera bridge.",
+        ),
+        DeclareLaunchArgument(
+            "depth_topic",
+            default_value="/camera/aligned_depth_to_color/image_raw",
+            description="Aligned depth image topic from the real camera bridge.",
+        ),
+        DeclareLaunchArgument(
+            "camera_info_topic",
+            default_value="/camera/color/camera_info",
+            description="Camera info topic aligned with the RGB stream.",
+        ),
+        DeclareLaunchArgument(
+            "odom_topic",
+            default_value="/utlidar/robot_odom",
+            description="Odometry topic published by the robot bridge.",
         ),
         base_to_camera_tf,
         camera_to_optical_tf,

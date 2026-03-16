@@ -6,6 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 PARENT_DIR="$(cd "${PROJECT_DIR}/.." && pwd)"
 GUI_WS_DIR="${GUI_WS_DIR:-${PARENT_DIR}/go2_gui_controller_ws}"
+export GO2_PROJECT_DIR="${PROJECT_DIR}"
 
 set +u
 source /opt/ros/humble/setup.bash

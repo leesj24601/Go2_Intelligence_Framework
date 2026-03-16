@@ -7,13 +7,20 @@ from typing import Deque
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from rclpy.qos import QoSPresetProfiles
-from sensor_msgs.msg import JointState
+from nav_msgs.msg import OccupancyGrid
+from rclpy.qos import (
+    DurabilityPolicy,
+    QoSPresetProfiles,
+    QoSProfile,
+    ReliabilityPolicy,
+)
+from sensor_msgs.msg import JointState, LaserScan
 
 
 class TelemetryBridge:
-    def __init__(self, node, history_sec: float = 20.0, max_samples: int = 1200):
+    def __init__(self, node, odom_topic: str = "/odom", history_sec: float = 20.0, max_samples: int = 1200):
         self._node = node
+        self._odom_topic = odom_topic
         self._history_sec = history_sec
         self._max_samples = max_samples
 
@@ -25,11 +32,18 @@ class TelemetryBridge:
         self._odom_angular_buffer: Deque[tuple[float, float]] = deque(maxlen=max_samples)
         self._topic_status = {
             "/joint_states": {"last": 0.0, "count": 0},
-            "/odom": {"last": 0.0, "count": 0},
+            odom_topic: {"last": 0.0, "count": 0},
+            "/scan": {"last": 0.0, "count": 0},
+            "/map": {"last": 0.0, "count": 0},
             "/cmd_vel": {"last": 0.0, "count": 0},
         }
 
         sensor_qos = QoSPresetProfiles.SENSOR_DATA.value
+        map_qos = QoSProfile(
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        )
         self._joint_state_subscription = node.create_subscription(
             JointState,
             "/joint_states",
@@ -38,7 +52,7 @@ class TelemetryBridge:
         )
         self._odom_subscription = node.create_subscription(
             Odometry,
-            "/odom",
+            odom_topic,
             self._on_odom,
             sensor_qos,
         )
@@ -47,6 +61,18 @@ class TelemetryBridge:
             "/cmd_vel",
             self._on_cmd_vel,
             10,
+        )
+        self._scan_subscription = node.create_subscription(
+            LaserScan,
+            "/scan",
+            self._on_scan,
+            sensor_qos,
+        )
+        self._map_subscription = node.create_subscription(
+            OccupancyGrid,
+            "/map",
+            self._on_map,
+            map_qos,
         )
 
     @property
@@ -77,7 +103,7 @@ class TelemetryBridge:
     def topic_summary_lines(self) -> list[str]:
         now_sec = time.monotonic()
         lines = []
-        for topic_name in ("/joint_states", "/odom", "/cmd_vel"):
+        for topic_name in ("/joint_states", self._odom_topic, "/cmd_vel"):
             status = self._topic_status[topic_name]
             if status["count"] <= 0:
                 lines.append(f"{topic_name}: no data")
@@ -85,6 +111,22 @@ class TelemetryBridge:
             age_sec = max(now_sec - status["last"], 0.0)
             lines.append(f"{topic_name}: {status['count']} msgs, last {age_sec:.1f}s ago")
         return lines
+
+    def has_topic_data(self, topic_name: str) -> bool:
+        status = self._topic_status.get(topic_name)
+        return bool(status and status["count"] > 0)
+
+    def has_recent_topic_data(self, topic_name: str, max_age_sec: float) -> bool:
+        status = self._topic_status.get(topic_name)
+        if not status or status["count"] <= 0:
+            return False
+        return (time.monotonic() - status["last"]) <= max_age_sec
+
+    def topic_age_sec(self, topic_name: str) -> float | None:
+        status = self._topic_status.get(topic_name)
+        if not status or status["count"] <= 0:
+            return None
+        return max(time.monotonic() - status["last"], 0.0)
 
     def _on_joint_state(self, msg: JointState) -> None:
         now_sec = time.monotonic()
@@ -105,7 +147,7 @@ class TelemetryBridge:
 
     def _on_odom(self, msg: Odometry) -> None:
         now_sec = time.monotonic()
-        self._mark_topic("/odom", now_sec)
+        self._mark_topic(self._odom_topic, now_sec)
         twist = msg.twist.twist
         linear_speed = hypot(twist.linear.x, twist.linear.y)
         self._append_value(self._odom_linear_buffer, linear_speed, now_sec)
@@ -117,6 +159,12 @@ class TelemetryBridge:
         linear_speed = hypot(msg.linear.x, msg.linear.y)
         self._append_value(self._cmd_linear_buffer, linear_speed, now_sec)
         self._append_value(self._cmd_angular_buffer, float(msg.angular.z), now_sec)
+
+    def _on_scan(self, _msg: LaserScan) -> None:
+        self._mark_topic("/scan", time.monotonic())
+
+    def _on_map(self, _msg: OccupancyGrid) -> None:
+        self._mark_topic("/map", time.monotonic())
 
     def _mark_topic(self, topic_name: str, now_sec: float) -> None:
         status = self._topic_status[topic_name]

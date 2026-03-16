@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 import queue
 import threading
@@ -13,6 +14,7 @@ try:
     from python_qt_binding.QtCore import Qt, QTimer
     from python_qt_binding.QtWidgets import (
         QApplication,
+        QDialog,
         QFrame,
         QGridLayout,
         QHBoxLayout,
@@ -31,6 +33,7 @@ except ImportError:
     from PyQt5.QtCore import Qt, QTimer
     from PyQt5.QtWidgets import (
         QApplication,
+        QDialog,
         QFrame,
         QGridLayout,
         QHBoxLayout,
@@ -48,6 +51,7 @@ except ImportError:
 
 from .charts_panel import ChartsPanel
 from .commands import CommandType, ParsedCommand
+from .launch_manager import LaunchManager
 from .manual_control import ManualControlBridge
 from .navigator_bridge import NavigatorBridge
 from .state_bridge import StateBridge
@@ -57,23 +61,85 @@ from .voice_command_listener import VoiceCommandListener, VoiceRecognitionResult
 from .waypoint_registry import WaypointRegistry
 
 
+@dataclass(frozen=True)
+class RuntimeMode:
+    key: str
+    label: str
+    use_sim_time: bool
+    odom_topic: str
+
+
+SIM_MODE = RuntimeMode("sim", "Simulation", True, "/odom")
+REAL_MODE = RuntimeMode("real", "Real Robot", False, "/utlidar/robot_odom")
+
+
+class ModeSelectionDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self._selected_mode: RuntimeMode | None = None
+        self.setWindowTitle("Select Runtime Mode")
+        self.setModal(True)
+        self.setMinimumWidth(420)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(14)
+
+        title = QLabel("Choose startup mode")
+        title.setStyleSheet("font-size: 20px; font-weight: 700; color: #102a24;")
+        hint = QLabel(
+            "ROS connections start after this choice, so the GUI binds to the correct "
+            "clock and odometry topic from the beginning."
+        )
+        hint.setWordWrap(True)
+        hint.setStyleSheet("color: #48645c; font-size: 13px;")
+
+        sim_button = QPushButton("Simulation")
+        sim_button.clicked.connect(lambda: self._select_mode(SIM_MODE))
+        real_button = QPushButton("Real Robot")
+        real_button.clicked.connect(lambda: self._select_mode(REAL_MODE))
+        cancel_button = QPushButton("Cancel")
+        cancel_button.clicked.connect(self.reject)
+
+        for button in (sim_button, real_button, cancel_button):
+            button.setMinimumHeight(44)
+
+        layout.addWidget(title)
+        layout.addWidget(hint)
+        layout.addWidget(sim_button)
+        layout.addWidget(real_button)
+        layout.addWidget(cancel_button)
+
+    @property
+    def selected_mode(self) -> RuntimeMode | None:
+        return self._selected_mode
+
+    def _select_mode(self, mode: RuntimeMode) -> None:
+        self._selected_mode = mode
+        self.accept()
+
+
 class GuiControllerNode(Node):
-    def __init__(self, default_waypoint_file: Path):
+    def __init__(self, default_waypoint_file: Path, runtime_mode: RuntimeMode):
         super().__init__("go2_gui_controller")
-        if self.has_parameter("use_sim_time"):
-            if self.get_parameter("use_sim_time").value is not True:
-                self.set_parameters([Parameter("use_sim_time", value=True)])
-        else:
-            self.declare_parameter("use_sim_time", True)
-        if not self.has_parameter("waypoint_file"):
-            self.declare_parameter("waypoint_file", str(default_waypoint_file))
+        self._declare_or_set_parameter("mode", runtime_mode.key)
+        self._declare_or_set_parameter("use_sim_time", runtime_mode.use_sim_time)
+        self._declare_or_set_parameter("waypoint_file", str(default_waypoint_file))
+        self._declare_or_set_parameter("odom_topic", runtime_mode.odom_topic)
         waypoint_file = Path(self.get_parameter("waypoint_file").value)
         self.waypoint_registry = WaypointRegistry(waypoint_file)
-        self.state_bridge = StateBridge(self)
-        self.telemetry = TelemetryBridge(self)
+        self.state_bridge = StateBridge(self, odom_topic=runtime_mode.odom_topic)
+        self.telemetry = TelemetryBridge(self, odom_topic=runtime_mode.odom_topic)
         self.manual_control = ManualControlBridge(self)
         self.navigator = NavigatorBridge(self, self.state_bridge, self.waypoint_registry)
         self.parser = TextCommandParser(self.waypoint_registry)
+        self.runtime_mode = runtime_mode
+
+    def _declare_or_set_parameter(self, name: str, value) -> None:
+        if self.has_parameter(name):
+            self.set_parameters([Parameter(name, value=value)])
+            return
+        self.declare_parameter(name, value)
 
 
 class MainWindow(QMainWindow):
@@ -87,6 +153,7 @@ class MainWindow(QMainWindow):
     VOICE_FINE_JOG_SEC = 0.4
     VOICE_POLL_MS = 100
     ROS_SPIN_MS = 20
+    ROS_SPIN_BATCH = 25
     STATUS_REFRESH_MS = 50
     CHART_REFRESH_MS = 100
     MANUAL_PUBLISH_MS = 50
@@ -94,6 +161,7 @@ class MainWindow(QMainWindow):
     def __init__(self, ros_node: GuiControllerNode):
         super().__init__()
         self._node = ros_node
+        self._launch_manager: LaunchManager | None = None
         self._manual_command = (0.0, 0.0, 0.0)
         self._timed_command = (0.0, 0.0, 0.0)
         self._timed_command_deadline = 0.0
@@ -101,8 +169,9 @@ class MainWindow(QMainWindow):
         self._voice_listener = VoiceCommandListener()
         self._voice_result_queue: queue.Queue[VoiceRecognitionResult] = queue.Queue()
         self._voice_listening = False
-        self.setWindowTitle("Go2 Operator Console")
+        self.setWindowTitle(f"Go2 Operator Console [{self._node.runtime_mode.label}]")
         self._build_ui()
+        self._setup_runtime_launch_manager()
 
         self._ros_timer = QTimer(self)
         self._ros_timer.timeout.connect(self._spin_ros)
@@ -149,7 +218,7 @@ class MainWindow(QMainWindow):
         shell_row.addWidget(self._build_sidebar(), 0)
 
         self.page_stack.addWidget(self._build_control_tab())
-        self.page_stack.addWidget(self._build_monitor_tab())
+        self.page_stack.addWidget(self._build_runtime_tab())
         self._charts_panel = ChartsPanel(self._node.telemetry)
         self.page_stack.addWidget(self._charts_panel)
         self.page_stack.addWidget(self._build_logs_tab())
@@ -318,7 +387,7 @@ class MainWindow(QMainWindow):
 
         self.nav_list = QListWidget()
         self.nav_list.setObjectName("SidebarNav")
-        self.nav_list.addItems(["Control", "Monitor", "Charts", "Logs"])
+        self.nav_list.addItems(["Control", "Runtime", "Charts", "Logs"])
         self.nav_list.currentRowChanged.connect(self.page_stack.setCurrentIndex)
 
         layout.addWidget(section)
@@ -490,47 +559,53 @@ class MainWindow(QMainWindow):
         layout.addLayout(bottom_row)
         return tab
 
-    def _build_monitor_tab(self) -> QWidget:
+    def _build_runtime_tab(self) -> QWidget:
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(16)
 
-        metrics_row = QHBoxLayout()
-        metrics_row.setSpacing(16)
-        pose_card, self.monitor_pose_value = self._make_metric_card("Current Pose", "map: x=0.00, y=0.00")
-        nav_card, self.monitor_nav_value = self._make_metric_card("Nav State", "idle")
-        result_card, self.monitor_result_value = self._make_metric_card("Last Result", "none")
-        metrics_row.addWidget(pose_card, 1)
-        metrics_row.addWidget(nav_card, 1)
-        metrics_row.addWidget(result_card, 1)
-        layout.addLayout(metrics_row)
-
-        detail_row = QHBoxLayout()
-        detail_row.setSpacing(16)
-
         runtime_card, runtime_layout = self._build_panel_card(
-            "Runtime Signals",
-            "Operator-facing summaries that should be readable without opening logs.",
+            "Runtime Launch",
+            "Start and stop the SLAM mapping stack or the localization plus Nav2 stack from the GUI.",
         )
-        self.monitor_feedback_label = QLabel("Feedback: ready")
-        self.monitor_feedback_label.setWordWrap(True)
-        self.monitor_voice_label = QLabel(self._voice_status_text())
-        self.monitor_voice_label.setWordWrap(True)
-        runtime_layout.addWidget(self.monitor_feedback_label)
-        runtime_layout.addWidget(self.monitor_voice_label)
-        detail_row.addWidget(runtime_card, 1)
+        self.slam_stack_status_label = QLabel("SLAM process: unavailable")
+        self.slam_ready_label = QLabel("SLAM ready: unavailable")
+        self.navigation_stack_status_label = QLabel("Navigation process: unavailable")
+        self.navigation_ready_label = QLabel("Navigation ready: unavailable")
+        self.rviz_status_label = QLabel("RViz: unavailable")
+        self.runtime_launch_hint_label = QLabel("Launch controls are initializing.")
+        self.tf_debug_label = QLabel("TF debug: unavailable")
+        self.tf_debug_label.setWordWrap(True)
+        self.runtime_launch_hint_label.setWordWrap(True)
+        runtime_layout.addWidget(self.slam_stack_status_label)
+        runtime_layout.addWidget(self.slam_ready_label)
+        runtime_layout.addWidget(self.navigation_stack_status_label)
+        runtime_layout.addWidget(self.navigation_ready_label)
+        runtime_layout.addWidget(self.rviz_status_label)
+        runtime_layout.addWidget(self.runtime_launch_hint_label)
+        runtime_layout.addWidget(self.tf_debug_label)
 
-        topic_card, topic_layout = self._build_panel_card(
-            "Topic Heartbeat",
-            "Live summary of the core signals the console is observing.",
-        )
-        self.topic_summary_label = QLabel("Topics: waiting for telemetry")
-        self.topic_summary_label.setWordWrap(True)
-        topic_layout.addWidget(self.topic_summary_label)
-        detail_row.addWidget(topic_card, 1)
+        runtime_button_row = QHBoxLayout()
+        self.start_slam_button = QPushButton("Start SLAM")
+        self.stop_slam_button = QPushButton("Stop SLAM")
+        self.start_navigation_button = QPushButton("Start Navigation")
+        self.stop_navigation_button = QPushButton("Stop Navigation")
+        runtime_button_row.addWidget(self.start_slam_button)
+        runtime_button_row.addWidget(self.stop_slam_button)
+        runtime_button_row.addWidget(self.start_navigation_button)
+        runtime_button_row.addWidget(self.stop_navigation_button)
+        runtime_layout.addLayout(runtime_button_row)
 
-        layout.addLayout(detail_row)
+        rviz_button_row = QHBoxLayout()
+        self.open_rviz_button = QPushButton("Open RViz")
+        self.close_rviz_button = QPushButton("Close RViz")
+        rviz_button_row.addWidget(self.open_rviz_button)
+        rviz_button_row.addWidget(self.close_rviz_button)
+        runtime_layout.addLayout(rviz_button_row)
+
+        layout.addWidget(runtime_card)
+        layout.addStretch(1)
         return tab
 
     def _build_logs_tab(self) -> QWidget:
@@ -547,29 +622,177 @@ class MainWindow(QMainWindow):
         layout.addWidget(intro_card)
         return tab
 
+    def _setup_runtime_launch_manager(self) -> None:
+        self._launch_manager = LaunchManager(
+            self._node.runtime_mode.key,
+            log_callback=self._append_log,
+            status_callback=self._set_runtime_stack_status,
+        )
+
+        self.start_slam_button.clicked.connect(self._start_slam_stack)
+        self.stop_slam_button.clicked.connect(self._stop_slam_stack)
+        self.start_navigation_button.clicked.connect(self._start_navigation_stack)
+        self.stop_navigation_button.clicked.connect(self._stop_navigation_stack)
+        self.open_rviz_button.clicked.connect(self._open_rviz)
+        self.close_rviz_button.clicked.connect(self._close_rviz)
+
+        if not self._launch_manager.available:
+            self.runtime_launch_hint_label.setText(
+                f"Launch controls unavailable: {self._launch_manager.unavailable_reason}"
+            )
+            for button in (
+                self.start_slam_button,
+                self.stop_slam_button,
+                self.start_navigation_button,
+                self.stop_navigation_button,
+                self.open_rviz_button,
+                self.close_rviz_button,
+            ):
+                button.setEnabled(False)
+            self._append_log(f"runtime_launch unavailable: {self._launch_manager.unavailable_reason}")
+            return
+
+        mode_text = "simulation" if self._node.runtime_mode.key == "sim" else "real robot"
+        self.runtime_launch_hint_label.setText(
+            f"Launch targets are bound to the {mode_text} stack for this session."
+        )
+        self._set_runtime_stack_status("slam", self._launch_manager.status_text("slam"))
+        self._set_runtime_stack_status("navigation", self._launch_manager.status_text("navigation"))
+        self._set_runtime_stack_status("rviz", self._launch_manager.rviz_status_text())
+        self._refresh_runtime_ready_labels()
+
+    def _set_runtime_stack_status(self, key: str, status: str) -> None:
+        if key == "slam":
+            label = self.slam_stack_status_label
+            prefix = "SLAM process"
+        elif key == "navigation":
+            label = self.navigation_stack_status_label
+            prefix = "Navigation process"
+        else:
+            label = self.rviz_status_label
+            prefix = "RViz"
+        label.setText(f"{prefix}: {status}")
+
+    def _start_slam_stack(self) -> None:
+        self._run_runtime_stack_action("slam", "start")
+
+    def _stop_slam_stack(self) -> None:
+        self._run_runtime_stack_action("slam", "stop")
+
+    def _start_navigation_stack(self) -> None:
+        self._run_runtime_stack_action("navigation", "start")
+
+    def _stop_navigation_stack(self) -> None:
+        self._run_runtime_stack_action("navigation", "stop")
+
+    def _open_rviz(self) -> None:
+        self._run_runtime_stack_action("rviz", "start")
+
+    def _close_rviz(self) -> None:
+        self._run_runtime_stack_action("rviz", "stop")
+
+    def _run_runtime_stack_action(self, key: str, action: str) -> None:
+        if self._launch_manager is None:
+            self.feedback_label.setText("Feedback: launch manager unavailable")
+            self._append_log("runtime_launch failed: manager unavailable")
+            return
+
+        if key == "rviz":
+            if action == "start":
+                success, message = self._launch_manager.open_rviz()
+            else:
+                success, message = self._launch_manager.close_rviz()
+        elif action == "start":
+            success, message = self._launch_manager.start(key)
+        else:
+            success, message = self._launch_manager.stop(key)
+
+        if success and key == "navigation" and action == "start":
+            self._node.state_bridge.reset_localization_tracking()
+
+        self.feedback_label.setText(f"Feedback: {message}")
+        log_prefix = "runtime_launch" if success else "runtime_launch blocked"
+        self._append_log(f"{log_prefix}: {message}")
+
     def _spin_ros(self) -> None:
-        rclpy.spin_once(self._node, timeout_sec=0.0)
+        for _ in range(self.ROS_SPIN_BATCH):
+            rclpy.spin_once(self._node, timeout_sec=0.0)
         self._node.state_bridge.update_from_tf()
         self._node.navigator.spin_once()
 
     def _refresh_status(self) -> None:
         state = self._node.state_bridge.state
         pose_text = self._node.state_bridge.pose_text()
+        nav_status_text = self._display_nav_status(state.nav_status)
         self.pose_label.setText(f"Pose: {pose_text}")
-        self.nav_status_label.setText(f"Nav: {state.nav_status}")
+        self.nav_status_label.setText(f"Nav: {nav_status_text}")
         self.last_result_label.setText(f"Last result: {state.last_result}")
-        self.monitor_pose_value.setText(pose_text)
-        self.monitor_nav_value.setText(state.nav_status)
-        self.monitor_result_value.setText(state.last_result)
-        self.monitor_feedback_label.setText(self.feedback_label.text())
-        self.monitor_voice_label.setText(self.voice_status_label.text())
-        self.topic_summary_label.setText("Topics:\n" + "\n".join(self._node.telemetry.topic_summary_lines()))
-        self.header_nav_value.setText(state.nav_status)
+        self.header_nav_value.setText(nav_status_text)
         self.header_voice_value.setText(self.voice_status_label.text().replace("Voice: ", ""))
         self.header_pose_value.setText(state.frame_id)
+        self._refresh_runtime_ready_labels()
 
     def _refresh_charts(self) -> None:
         self._charts_panel.refresh()
+
+    def _display_nav_status(self, raw_status: str) -> str:
+        if self._launch_manager is None or not self._launch_manager.available:
+            return raw_status
+        if not self._launch_manager.is_process_running("navigation"):
+            return "inactive"
+        return raw_status
+
+    def _refresh_runtime_ready_labels(self) -> None:
+        if self._launch_manager is None or not self._launch_manager.available:
+            return
+        self.slam_ready_label.setText(f"SLAM ready: {self._compute_slam_ready_text()}")
+        self.navigation_ready_label.setText(f"Navigation ready: {self._compute_navigation_ready_text()}")
+        self.tf_debug_label.setText(self._compute_tf_debug_text())
+
+    def _compute_slam_ready_text(self) -> str:
+        if not self._launch_manager.is_process_running("slam"):
+            return "inactive"
+
+        issues = []
+        odom_topic = self._node.runtime_mode.odom_topic
+        if not self._node.telemetry.has_recent_topic_data(odom_topic, 1.5):
+            issues.append("waiting for odom")
+        if not self._node.telemetry.has_recent_topic_data("/scan", 1.5):
+            issues.append("waiting for scan")
+        if not self._node.telemetry.has_topic_data("/map"):
+            issues.append("waiting for first map")
+        return "ready" if not issues else ", ".join(issues)
+
+    def _compute_navigation_ready_text(self) -> str:
+        if not self._launch_manager.is_process_running("navigation"):
+            return "inactive"
+
+        issues = []
+        odom_topic = self._node.runtime_mode.odom_topic
+        if not self._node.telemetry.has_recent_topic_data(odom_topic, 1.5):
+            issues.append("waiting for odom")
+        if not self._node.telemetry.has_topic_data("/map"):
+            issues.append("waiting for map")
+        if not self._node.navigator.server_ready():
+            issues.append("waiting for navigate_to_pose")
+        if not self._node.navigator.localization_ready():
+            issues.append("waiting for localization")
+        return "ready" if not issues else ", ".join(issues)
+
+    def _compute_tf_debug_text(self) -> str:
+        state = self._node.state_bridge.state
+        map_odom_text = "yes" if state.map_odom_seen else "no"
+        map_base_text = "yes" if state.map_base_link_seen else "no"
+        map_camera_text = "yes" if state.map_camera_link_seen else "no"
+        localization_text = "yes" if state.localization_initialized else "no"
+        return (
+            "TF debug: "
+            f"map->odom {map_odom_text}, "
+            f"map->base_link {map_base_text}, "
+            f"map->camera_link {map_camera_text}, "
+            f"localization initialized {localization_text}, "
+            f"pose frame {state.frame_id}"
+        )
 
     def _reload_waypoint_list(self) -> None:
         self.waypoint_list.clear()
@@ -916,13 +1139,22 @@ class MainWindow(QMainWindow):
         self._clear_timed_command(stop_robot=False)
         self._node.manual_control.stop()
         self._node.navigator.cancel()
+        if self._launch_manager is not None:
+            self._launch_manager.shutdown()
         super().closeEvent(event)
 
 
 def run_app(waypoint_file: Path) -> None:
-    rclpy.init()
-    node = GuiControllerNode(waypoint_file)
     app = QApplication([])
+    mode_dialog = ModeSelectionDialog()
+    exec_method = getattr(mode_dialog, "exec", None)
+    dialog_result = exec_method() if callable(exec_method) else mode_dialog.exec_()
+    if dialog_result != QDialog.Accepted or mode_dialog.selected_mode is None:
+        return
+
+    runtime_mode = mode_dialog.selected_mode
+    rclpy.init()
+    node = GuiControllerNode(waypoint_file, runtime_mode)
     window = MainWindow(node)
     window.resize(980, 760)
     window.show()

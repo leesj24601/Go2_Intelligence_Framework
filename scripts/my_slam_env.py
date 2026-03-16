@@ -1,4 +1,7 @@
 # my_slam_env.py
+import sys
+from pathlib import Path
+
 from isaaclab.utils import configclass
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.sensors import CameraCfg, ImuCfg
@@ -6,15 +9,33 @@ import isaaclab.sim as sim_utils
 from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
 import isaaclab_tasks.manager_based.locomotion.velocity.mdp as mdp
-from isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg import (
-    UnitreeGo2RoughEnvCfg,
-)
+from isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg import UnitreeGo2RoughEnvCfg
+
+
+def _load_unitree_rl_lab_go2_cfg():
+    """Load the Go2 asset config from unitree_rl_lab so actuator behavior matches policy training."""
+    repo_root = Path(__file__).resolve().parents[1]
+    unitree_rl_lab_src = repo_root.parent / "unitree_rl_lab" / "source" / "unitree_rl_lab"
+    if not unitree_rl_lab_src.exists():
+        raise FileNotFoundError(f"unitree_rl_lab source path not found: {unitree_rl_lab_src}")
+
+    unitree_rl_lab_src_str = str(unitree_rl_lab_src)
+    if unitree_rl_lab_src_str not in sys.path:
+        sys.path.insert(0, unitree_rl_lab_src_str)
+
+    from unitree_rl_lab.assets.robots.unitree import UNITREE_GO2_CFG
+
+    return UNITREE_GO2_CFG
+
+
+UNITREE_RL_LAB_GO2_CFG = _load_unitree_rl_lab_go2_cfg()
 
 
 @configclass
 class MySlamEnvCfg(UnitreeGo2RoughEnvCfg):
     def __post_init__(self):
         super().__post_init__()
+        self.scene.robot = UNITREE_RL_LAB_GO2_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
         # 1. 새로 저장한 SLAM 전용 USD 경로 지정
         self.scene.terrain = TerrainImporterCfg(
