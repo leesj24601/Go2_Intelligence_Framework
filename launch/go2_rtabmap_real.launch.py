@@ -11,12 +11,41 @@ def generate_launch_description():
     depth_topic = LaunchConfiguration("depth_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     odom_topic = LaunchConfiguration("odom_topic")
+    restamped_odom_topic = "/utlidar/robot_odom_restamped"
+    rgbd_topic = "/camera/rgbd_image"
 
-    camera_remappings = [
-        ("rgb/image", rgb_topic),
-        ("depth/image", depth_topic),
-        ("rgb/camera_info", camera_info_topic),
-    ]
+    odom_restamper = Node(
+        package="go2_gui_controller",
+        executable="odom_restamper",
+        name="odom_restamper",
+        output="screen",
+        parameters=[{
+            "publish_tf": True,
+        }],
+        remappings=[
+            ("input_odom", odom_topic),
+            ("output_odom", restamped_odom_topic),
+        ],
+    )
+
+    rgbd_sync = Node(
+        package="rtabmap_sync",
+        executable="rgbd_sync",
+        name="rgbd_sync",
+        output="screen",
+        parameters=[{
+            "approx_sync": True,
+            "approx_sync_max_interval": 0.5,
+            "queue_size": 30,
+            "qos": 1,
+        }],
+        remappings=[
+            ("rgb/image", rgb_topic),
+            ("depth/image", depth_topic),
+            ("rgb/camera_info", camera_info_topic),
+            ("rgbd_image", rgbd_topic),
+        ],
+    )
 
     # Static TF 1: base_link → camera_link
     # TODO: RealSense 실제 장착 위치 측정 후 수정 (현재는 시뮬 기준 어림값)
@@ -31,7 +60,8 @@ def generate_launch_description():
         ],
     )
 
-    # Static TF 2: camera_link → camera_optical_frame (회전만, 위치 없음)
+    # Static TF 2: camera_link → camera_color_optical_frame
+    # RealSense color/aligned-depth topics use camera_color_optical_frame.
     camera_to_optical_tf = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
@@ -39,7 +69,7 @@ def generate_launch_description():
             "0", "0", "0",
             "-1.5708", "0", "-1.5708",
             "camera_link",
-            "camera_optical_frame",
+            "camera_color_optical_frame",
         ],
     )
 
@@ -48,18 +78,20 @@ def generate_launch_description():
         "database_path": "/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_real.db",
         "frame_id": "camera_link",
         "map_frame_id": "map",
+        # Use pre-synchronized RGBD stream and external odom via TF tree.
         "odom_frame_id": "odom",
-        "subscribe_depth": True,
+        "subscribe_depth": False,
+        "subscribe_rgbd": True,
         "subscribe_odom_info": False,
         "subscribe_imu": False,            # unitree_ros2 /odom에 IMU 이미 융합됨
-        "odom_to_tf": True,                # /utlidar/robot_odom → odom→base_link TF 발행
-        "approx_sync": True,
-        "approx_sync_max_interval": 0.1,   # 실시간 동기화 (시뮬 0.5 → 0.1)
+        "odom_to_tf": True,                # map->odom TF publish 유지, external odom은 TF로 사용
+        "approx_sync": False,              # rgbd_image 단독 입력이므로 추가 sync 불필요
         "publish_tf": True,
         "tf_delay": 0.05,
         "wait_for_transform": 0.5,
         "qos": 1,
-        "queue_size": 5,
+        "queue_size": 30,                 # RTAB-Map sync_queue_size
+        "topic_queue_size": 30,           # 각 입력 토픽 message_filters 버퍼도 함께 확대
         "use_sim_time": False,
         "Rtabmap/DetectionRate": "1.0",    # 시뮬 0.5Hz → 실로봇 1.0Hz
         "Rtabmap/LoopClosureReextractFeatures": "true",
@@ -70,7 +102,7 @@ def generate_launch_description():
         "RGBD/ProximityPathMaxNeighbors": "10",
         "RGBD/AngularUpdate": "0.1",
         "RGBD/LinearUpdate": "0.1",
-        "Reg/Force3DoF": "false",
+        "Reg/Force3DoF": "true",
         "Grid/FromDepth": "true",
         "Grid/RangeMax": "4.0",            # D435i 실용 범위 (시뮬 5.0 → 4.0)
         "Grid/CellSize": "0.05",
@@ -81,9 +113,8 @@ def generate_launch_description():
         "Rtabmap/ImageBufferSize": "1",
     }
 
-    _rtabmap_remappings = camera_remappings + [
-        ("odom", odom_topic),              # Unitree LiDAR 기반 odom (연결 후 실토픽 확인)
-        # IMU 구독 없음 (subscribe_imu: False)
+    _rtabmap_remappings = [
+        ("rgbd_image", rgbd_topic),
     ]
 
     # SLAM 모드 (localization=false, 기본값)
@@ -122,7 +153,7 @@ def generate_launch_description():
     )
 
     # Depth → LaserScan 변환
-    # 현재 실기 설정: 424×240, 30Hz
+    # 현재 실기 설정: 424×240, 요청 15Hz / 실측 aligned depth 약 13Hz
     # scan_height: 10행 (240 기준 중앙 약 4%) → 시뮬 설정과 같은 비율
     depthimage_to_laserscan = Node(
         package="depthimage_to_laserscan",
@@ -130,7 +161,7 @@ def generate_launch_description():
         name="depthimage_to_laserscan",
         parameters=[{
             "scan_height": 10,       # 240행 기준 중앙 10행 사용
-            "scan_time": 0.033,      # 30Hz
+            "scan_time": 0.08,       # 실측 depth 주기(~76ms)에 맞춰 보정
             "range_min": 0.3,        # D435i 최소 거리 (시뮬 0.2 → 0.3)
             "range_max": 4.0,        # D435i 실용 범위 (시뮬 5.0 → 4.0)
             "output_frame": "camera_link",
@@ -162,13 +193,15 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "camera_info_topic",
             default_value="/camera/color/camera_info",
-            description="Camera info topic aligned with the RGB stream.",
+            description="Camera info topic matching the RGB stream.",
         ),
         DeclareLaunchArgument(
             "odom_topic",
             default_value="/utlidar/robot_odom",
-            description="Odometry topic published by the robot bridge.",
+            description="Raw odometry topic published by the robot bridge.",
         ),
+        odom_restamper,
+        rgbd_sync,
         base_to_camera_tf,
         camera_to_optical_tf,
         depthimage_to_laserscan,

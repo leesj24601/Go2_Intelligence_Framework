@@ -27,11 +27,11 @@ class TextCommandParser:
         if self._contains_any(simplified, ("cancel", "abort", "취소", "중지", "그만")):
             return ParsedCommand(CommandType.CANCEL_NAVIGATION, source_text=text)
 
-        if self._contains_any(simplified, ("turn", "rotate", "돌아", "회전", "좌회전", "우회전")):
+        if self._contains_any(simplified, ("turn", "rotate", "돌아", "회전", "좌회전", "우회전", "좌향좌", "우향우")):
             degrees = self._extract_scalar(simplified, default=90.0)
-            if "반바퀴" in simplified:
+            if self._contains_any(simplified, ("반바퀴", "뒤로 돌아", "뒤 돌아", "뒤돌아", "뒤를 돌아", "유턴")):
                 degrees = 180.0
-            if self._contains_any(simplified, ("right", "오른쪽", "우측", "우회전")):
+            if self._contains_any(simplified, ("right", "오른쪽", "우측", "우회전", "우향우")):
                 degrees *= -1.0
             return ParsedCommand(
                 CommandType.ROTATE_RELATIVE,
@@ -136,8 +136,14 @@ class TextCommandParser:
             "후진": "뒤",
             "좌회전": "왼쪽 회전",
             "우회전": "오른쪽 회전",
+            "좌향좌": "왼쪽 회전",
+            "우향우": "오른쪽 회전",
             "왼쪽으로 돌아": "왼쪽 회전",
             "오른쪽으로 돌아": "오른쪽 회전",
+            "뒤로 돌아": "뒤로 돌아",
+            "뒤돌아": "뒤로 돌아",
+            "뒤를 돌아": "뒤로 돌아",
+            "유턴": "뒤로 돌아",
         }
         for old, new in replacements.items():
             simplified = simplified.replace(old, new)

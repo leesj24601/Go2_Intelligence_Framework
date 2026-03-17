@@ -23,6 +23,11 @@ setup(
     entry_points={
         "console_scripts": [
             "gui_controller = go2_gui_controller.main:main",
+            "odom_restamper = go2_gui_controller.odom_restamper:main",
+            "image_restamper = go2_gui_controller.image_restamper:main",
+            "camera_info_restamper = go2_gui_controller.camera_info_restamper:main",
+            "rgbd_restamper = go2_gui_controller.rgbd_restamper:main",
+            "rgbd_odom_sync = go2_gui_controller.rgbd_odom_sync:main",
         ],
     },
 )
