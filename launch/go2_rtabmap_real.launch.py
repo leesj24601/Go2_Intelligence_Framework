@@ -48,13 +48,13 @@ def generate_launch_description():
     )
 
     # Static TF 1: base_link → camera_link
-    # TODO: RealSense 실제 장착 위치 측정 후 수정 (현재는 시뮬 기준 어림값)
+    # 수동 실측값 적용 완료 (X: 33cm, Z: 9cm)
     base_to_camera_tf = Node(
         package="tf2_ros",
         executable="static_transform_publisher",
         arguments=[
-            "0.30", "0.0", "0.05",
-            "0", "0", "0",
+            "0.33", "0.0", "0.09",
+            "0.0", "0.0", "0.0",
             "base_link",
             "camera_link",
         ],
@@ -88,12 +88,13 @@ def generate_launch_description():
         "approx_sync": False,              # rgbd_image 단독 입력이므로 추가 sync 불필요
         "publish_tf": True,
         "tf_delay": 0.05,
-        "wait_for_transform": 0.5,
+        "wait_for_transform": 0.2,        # 정석 모드: 시간 동기화 완료로 0.2초면 부드럽게 작동
+        # "tf_tolerance": 0.5,             # 더 이상 필요 없음
         "qos": 1,
         "queue_size": 30,                 # RTAB-Map sync_queue_size
         "topic_queue_size": 30,           # 각 입력 토픽 message_filters 버퍼도 함께 확대
         "use_sim_time": False,
-        "Rtabmap/DetectionRate": "1.0",    # 시뮬 0.5Hz → 실로봇 1.0Hz
+        "Rtabmap/DetectionRate": "2.5",    # 시뮬 0.5Hz → 실로봇 1.0Hz → 2.5Hz 상향 (흔들림 보강)
         "Rtabmap/LoopClosureReextractFeatures": "true",
         "Reg/Strategy": "0",               # Visual 기반
         "Vis/EstimationType": "2",         # 3D-3D
