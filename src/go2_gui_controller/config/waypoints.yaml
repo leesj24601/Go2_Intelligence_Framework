@@ -1,1 +1,15 @@
-waypoints: {}
+waypoints:
+  red cube:
+    frame_id: map
+    x: -2.3987934032218483
+    y: 2.2207550573887547
+    yaw_deg: 174.4452368449107
+    aliases:
+    - red cube
+  blue cube:
+    frame_id: map
+    x: -0.21338457160580682
+    y: -2.3587271744669662
+    yaw_deg: 175.37248491815862
+    aliases:
+    - blue cube

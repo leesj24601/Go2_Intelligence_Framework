@@ -33,8 +33,9 @@ By providing a pre-configured pipeline of **RTAB-Map** and **Nav2**, it enables 
   - [1. Basic Robot Simulation](#1-basic-robot-simulation-manual-control)
   - [2. 3D SLAM](#2-3d-slam-rtab-map-in-isaac-sim)
   - [3. Autonomous Navigation](#3-autonomous-navigation-nav2)
-  - [4. Reinforcement Learning](#4-reinforcement-learning)
-  - [5. Real-world Deployment](#5-real-world-deployment)
+  - [4. GUI Controller](#4-gui-controller)
+  - [5. Reinforcement Learning](#5-reinforcement-learning)
+  - [6. Real-world Deployment](#6-real-world-deployment)
 - [🤝 Acknowledgements](#-acknowledgements)
 - [📄 License](#-license)
 
@@ -269,9 +270,48 @@ Integration with ROS 2 Nav2 stack for autonomous waypoint navigation and obstacl
 
 > 🗺️ **Map Dependency**: The Nav2 module is pre-configured to automatically load the map from **`maps/rtabmap_ground_truth.db`**. Please ensure you have completed the mapping process and renamed your database file as described in the SLAM section before running navigation.
 
-#### 🎮 Interactive Control (GUI & Natural Language)
-In addition to RViz's `2D Goal Pose`, you can use the **GUI Controller** for more intuitive robot management and mission planning.
+#### 🚀 How to Run
+To run the Nav2 autonomous navigation, follow these steps in separate terminals.
+
+**Terminal A**: Start the Go2 simulation environment
+```bash
+cd ~/go2_intelligence_framework
+conda activate <isaacsim_env_name>
+python scripts/go2_sim.py
+```
+
+**Terminal B**: Launch the Nav2 stack
+```bash
+cd ~/go2_intelligence_framework
+ros2 launch launch/go2_navigation.launch.py
+```
+
+**Terminal C**: Open RViz Visualization
+```bash
+cd ~/go2_intelligence_framework
+rviz2 -d config/go2_sim.rviz
+```
+
+> 💡 **Tip for Successful Navigation**:
+> 1. **Confirm Localization First**: Successful localization is confirmed when the **red laser scan lines** perfectly align with the generated map in RViz.
+> 2. **Issue Goal**: Use the `2D Goal Pose` in RViz only after localization is stable.
+
+---
+
+### 4. GUI Controller
+
+#### 🎥 Demonstration Video
+<div align="center">
+  <a href="https://youtu.be/42z0Bue8SZ8">
+    <img src="https://img.youtube.com/vi/42z0Bue8SZ8/0.jpg" alt="Complete Mission Control Dashboard & Autonomous Navigation" width="600">
+  </a>
+  <p><i>Click the image to watch the Complete Mission Control Dashboard & Autonomous Navigation demonstration.</i></p>
+</div>
+
+#### 🎮 Interactive Control & Monitoring Dashboard
+In addition to RViz's `2D Goal Pose`, you can use the **GUI Controller** for more intuitive robot management, mission planning, and real-time monitoring.
 *   **Intuitive Teleoperation**: Direct control via GUI buttons.
+*   **Real-time Telemetry Dashboard**: Monitor the robot's state, including live charts for individual joint values directly alongside RViz.
 *   **Mission Planning**: Set waypoints and monitor robot status in real-time.
 *   **Future Update**: Support for **Natural Language Commands** (e.g., "Go to the kitchen") to automatically set corresponding waypoints via the GUI bridge.
 
@@ -296,44 +336,21 @@ Before running the interactive controller for the first time, you need to set up
    > 💡 **Tip**: You only need to run the build command once. If there are no code changes, you can skip this step in future sessions.
 
 #### 🚀 How to Run
-To run the Nav2 autonomous navigation and the interactive controller, follow these steps in separate terminals.
+While `go2_sim.py` is running, open a new terminal and execute the following command to launch the GUI Controller:
 
-**Terminal A**: Start the Go2 simulation environment
-```bash
-cd ~/go2_intelligence_framework
-conda activate <isaacsim_env_name>
-python scripts/go2_sim.py
-```
-
-**Terminal B**: Launch the Nav2 stack
-```bash
-cd ~/go2_intelligence_framework
-ros2 launch launch/go2_navigation.launch.py
-```
-
-**Terminal C**: Open RViz Visualization
-```bash
-cd ~/go2_intelligence_framework
-rviz2 -d config/go2_sim.rviz
-```
-
-**Terminal D**: Launch GUI Controller
 ```bash
 cd ~/go2_intelligence_framework
 bash scripts/run_gui_controller.sh
 ```
 
-> 💡 **Tip for Successful Navigation**:
-> 1. **Confirm Localization First**: Successful localization is confirmed when the **red laser scan lines** perfectly align with the generated map in RViz.
-> 2. **Issue Goal**: Use the `2D Goal Pose` in RViz or the **GUI Controller's navigation interface** only after localization is stable.
 ---
 
-### 4. Reinforcement Learning
+### 5. Reinforcement Learning
 *Coming Soon: RL environment setup and policy training for Go2 locomotion and intelligent behavior.*
 
 ---
 
-### 5. Real-world Deployment
+### 6. Real-world Deployment
 *Coming Soon: Guidelines and scripts for deploying the developed intelligence on the actual Unitree Go2 robot.*
 
 ---

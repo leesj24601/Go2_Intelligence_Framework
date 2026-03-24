@@ -50,7 +50,6 @@ parser.add_argument(
     default="Isaac-Velocity-Rough-Unitree-Go2-Play-v0",
     help="Task name.",
 )
-
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import cli_args
 
@@ -211,13 +210,21 @@ class JointStatePublisherNode:
 
 
 def setup_ros2_camera_graph(camera_prim_path: str):
-    """명시 해상도 render product 생성 → OmniGraph ROS2 퍼블리시.
+    """숨겨진 뷰포트에서 렌더 프로덕트 생성 → OmniGraph ROS2 퍼블리시.
 
-    viewport 크기에 의존하지 않고 render product 해상도를 직접 고정한다.
-    실제 RealSense 설정과 맞추기 위해 424x240으로 강제한다.
+    공식 예제 방식: execution evaluator + SIMULATION pipeline + frameSkipCount
+    → evaluate_sync 블로킹 없이 시뮬레이션 스텝과 자동 동기화
     """
-    render_width = 424
-    render_height = 240
+    from omni.kit.viewport.utility import create_viewport_window
+
+    # 숨겨진 뷰포트 생성 (메인 뷰포트에 영향 없음) - 320x240 저해상도
+    vp_window = create_viewport_window(
+        "ROS2_Camera", width=320, height=240, visible=False
+    )
+    vp_api = vp_window.viewport_api
+    vp_api.set_active_camera(camera_prim_path)
+    rp_path = vp_api.get_render_product_path()
+    print(f"[INFO] 숨겨진 뷰포트 렌더 프로덕트: {rp_path}")
 
     # frameSkipCount: 퍼블리시Hz = simFPS / (skipCount + 1)
     # 시뮬레이션 ~30fps 기준 → skipCount=2 → ~10Hz 퍼블리시
@@ -233,42 +240,34 @@ def setup_ros2_camera_graph(camera_prim_path: str):
         {
             keys.CREATE_NODES: [
                 ("OnPlaybackTick", "omni.graph.action.OnPlaybackTick"),
-                ("createRenderProduct", "isaacsim.core.nodes.IsaacCreateRenderProduct"),
                 ("cameraHelperRgb", "isaacsim.ros2.bridge.ROS2CameraHelper"),
                 ("cameraHelperDepth", "isaacsim.ros2.bridge.ROS2CameraHelper"),
                 ("cameraHelperInfo", "isaacsim.ros2.bridge.ROS2CameraInfoHelper"),
             ],
             keys.CONNECT: [
-                ("OnPlaybackTick.outputs:tick", "createRenderProduct.inputs:execIn"),
-                ("createRenderProduct.outputs:execOut", "cameraHelperRgb.inputs:execIn"),
-                ("createRenderProduct.outputs:execOut", "cameraHelperDepth.inputs:execIn"),
-                ("createRenderProduct.outputs:execOut", "cameraHelperInfo.inputs:execIn"),
-                ("createRenderProduct.outputs:renderProductPath", "cameraHelperRgb.inputs:renderProductPath"),
-                ("createRenderProduct.outputs:renderProductPath", "cameraHelperDepth.inputs:renderProductPath"),
-                ("createRenderProduct.outputs:renderProductPath", "cameraHelperInfo.inputs:renderProductPath"),
+                ("OnPlaybackTick.outputs:tick", "cameraHelperRgb.inputs:execIn"),
+                ("OnPlaybackTick.outputs:tick", "cameraHelperDepth.inputs:execIn"),
+                ("OnPlaybackTick.outputs:tick", "cameraHelperInfo.inputs:execIn"),
             ],
             keys.SET_VALUES: [
-                ("createRenderProduct.inputs:cameraPrim", [camera_prim_path]),
-                ("createRenderProduct.inputs:width", render_width),
-                ("createRenderProduct.inputs:height", render_height),
+                ("cameraHelperRgb.inputs:renderProductPath", rp_path),
                 ("cameraHelperRgb.inputs:frameId", "camera_optical_frame"),
                 ("cameraHelperRgb.inputs:topicName", "camera/color/image_raw"),
                 ("cameraHelperRgb.inputs:type", "rgb"),
                 ("cameraHelperRgb.inputs:frameSkipCount", FRAME_SKIP),
+                ("cameraHelperDepth.inputs:renderProductPath", rp_path),
                 ("cameraHelperDepth.inputs:frameId", "camera_optical_frame"),
                 ("cameraHelperDepth.inputs:topicName", "camera/depth/image_rect_raw"),
                 ("cameraHelperDepth.inputs:type", "depth"),
                 ("cameraHelperDepth.inputs:frameSkipCount", FRAME_SKIP),
+                ("cameraHelperInfo.inputs:renderProductPath", rp_path),
                 ("cameraHelperInfo.inputs:frameId", "camera_optical_frame"),
                 ("cameraHelperInfo.inputs:topicName", "camera/camera_info"),
                 ("cameraHelperInfo.inputs:frameSkipCount", FRAME_SKIP),
             ],
         },
     )
-    print(
-        f"[INFO] ROS2 카메라 퍼블리셔 설정 완료 "
-        f"({render_width}x{render_height}, frameSkip={FRAME_SKIP})"
-    )
+    print(f"[INFO] ROS2 카메라 퍼블리셔 설정 완료 (320x240, frameSkip={FRAME_SKIP})")
 
     # /clock 퍼블리시 (use_sim_time 지원)
     (clock_graph, _, _, _) = og.Controller.edit(
