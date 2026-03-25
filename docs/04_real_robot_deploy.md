@@ -161,10 +161,11 @@ ros2 run tf2_ros tf2_monitor    # odom → base_link TF 발행 주체 확인
 ```
 
 - [ ] unitree_ros2 브릿지 설치/실행 여부 확인
-- [ ] LiDAR+IMU odom 토픽명 확인 (`/odom` vs `/utlidar/robot_odom`)
-  → 다르면 `go2_rtabmap_real.launch.py` remapping 수정
-  → `go2_nav2_params_real.yaml` `odom_topic` 반영
-- [ ] `odom → base_link` TF 발행 주체 확인
+- [x] LiDAR+IMU raw odom 토픽 확인: `/utlidar/robot_odom`
+  → `go2_rtabmap_real.launch.py` raw 입력 기준과 일치
+  → Nav2 소비 토픽은 raw timestamp(2024년 문제)를 피하기 위해 `/utlidar/robot_odom_restamped` 사용
+- [x] `odom → base_link` TF는 upstream publisher가 직접 발행 중
+  → `odom_restamper_publish_tf` 기본값은 `false` 유지
 - [ ] RealSense 드라이버 토픽명 확인 → `go2_rtabmap_real.launch.py` remapping과 일치 여부
 
 ---
@@ -219,7 +220,41 @@ ros2 run tf2_ros tf2_monitor    # odom → base_link TF 발행 주체 확인
 
 ---
 
-## 트러블슈팅: RealSense align_depth MIPI 에러 (0227)
+## 현재 운영 기준: Go2 align depth 사용
+
+2026-03-25 기준 현재 운영 경로는 아래와 같다.
+
+- Go2에서 제공되는 aligned depth를 그대로 사용
+- RTAB-Map 입력 토픽:
+  - `/camera/color/image_raw`
+  - `/camera/aligned_depth_to_color/image_raw`
+  - `/camera/color/camera_info`
+- `launch/go2_rtabmap_real.launch.py`와 `launch/go2_navigation_real.launch.py`의 기본값도 이 기준에 맞춰져 있음
+
+실측 메모:
+
+- RealSense 요청 설정은 `424x240x15`, `enable_sync:=true`, `align_depth.enable:=true`
+- `align_depth.enable:=false`로 끄면 Go2 내부 `color/depth`는 각각 거의 `15Hz`로 안정적으로 나온다.
+- `align_depth.enable:=true`를 켜면 Go2 내부에서는 `color`와 `aligned_depth`가 약 `10.4Hz` 수준으로 내려간다.
+- 같은 aligned depth를 PC에서 수신하면 약 `8.6Hz` 수준으로 한 번 더 떨어진다.
+- 즉 현재 운영에서 fps를 제한하는 핵심 원인은 원본 센서 자체가 아니라 **Go2 내부의 align 처리 + PC로의 DDS/네트워크 전달 손실**이다.
+- Go2 내부 병목 후보는 크게 두 단계로 본다:
+  - `librealsense` / `realsense2_camera` 내부의 **align 연산 자체**
+  - align 결과를 만들기 위해 color/depth 프레임을 맞춰 기다리는 **sync 동작**
+- 현재 실측만으로는 위 두 항목의 기여도를 정량 분리하지 못했고, 둘을 더 자르려면 `enable_sync:=false`, `align_depth.enable:=true` 조건의 추가 A/B 테스트가 필요하다.
+
+운영 해석:
+
+- "컬러 카메라 원본이 느리다"기보다 `align_depth`를 켠 파이프라인 전체의 실효 fps가 떨어지는 것으로 보는 것이 맞다.
+- RTAB-Map / Nav2 관련 파라미터는 요청 15Hz가 아니라 **PC에서 실제로 받는 aligned depth 약 8Hz**를 기준으로 잡아야 한다.
+
+아래 `0227` 내용은 당시 카메라 이슈 대응을 위해 검토했던
+`align_depth:=false + raw depth/PC 정렬` 경로에 대한 **트러블슈팅 기록**이다.
+현재 기본 운영 경로로 간주하지 않는다.
+
+---
+
+## 트러블슈팅 기록: RealSense align_depth MIPI 에러 (0227)
 
 ### 증상
 
@@ -271,7 +306,7 @@ uvc streamer watchdog triggered on endpoint: 132  ← Color stream 끊김
 - `align_depth` 자체는 카메라 하드웨어 처리가 아닌 **realsense2_camera 노드(Go2 CPU) 소프트웨어 처리** → CPU 부담도 존재 (Jetson 급 임베디드에서 30fps → 2~5fps로 추락하는 사례 보고됨)
 - 소프트웨어(해상도/fps 조절)로는 해결 불가. Intel GitHub에 동일 에러 이슈 다수 (realsense-ros #2149, #2191, librealsense #9947)
 
-### 해결 방향: Go2에서 align_depth=false, PC에서 정렬
+### 당시 검토 방향: Go2에서 align_depth=false, PC에서 정렬
 
 ```
 [Go2] align_depth:=false (안정적)
@@ -285,13 +320,13 @@ uvc streamer watchdog triggered on endpoint: 132  ← Color stream 끊김
 [RTAB-Map] PC에서 생성된 aligned depth 구독
 ```
 
-**Go2 실행 명령어 (확정)**:
+**Go2 실행 명령어 (당시 검토안)**:
 ```bash
 # Go2 SSH (Noetic)
 roslaunch realsense2_camera rs_camera.launch camera:=my_go2 depth_width:=424 depth_height:=240 depth_fps:=6 color_width:=424 color_height:=240 color_fps:=6 align_depth:=false enable_infra1:=false enable_infra2:=false
 ```
 
-> ⚠️ `launch/go2_rtabmap_real.launch.py`의 depth 토픽 리매핑을
+> ⚠️ 당시 검토 기준에서는 `launch/go2_rtabmap_real.launch.py`의 depth 토픽 리매핑을
 > `/my_go2/aligned_depth_to_color/image_raw` → `/my_go2/depth/image_rect_raw` 로 변경 필요
 > (또는 PC에서 `depth_image_proc/register`로 aligned depth 생성 후 해당 토픽 사용)
 
@@ -319,7 +354,7 @@ librealsense **2.53.1부터** JetPack 5 (L4T R35) 패치가 포함됨.
 
 ---
 
-### 해결책 A: realsense2_camera 소스 빌드 (librealsense 2.54.2 링크)
+### 당시 대안 A: realsense2_camera 소스 빌드 (librealsense 2.54.2 링크)
 
 ```bash
 # Go2 Noetic 터미널 (ROS2 source 없는 상태)
@@ -355,7 +390,7 @@ roslaunch realsense2_camera rs_camera.launch \
 
 ---
 
-### 해결책 B: 4fps 수용 + 딜레이 최소화
+### 당시 대안 B: 4fps 수용 + 딜레이 최소화
 
 RTAB-Map `DetectionRate: 1.0Hz` 설정이므로 depth 4fps로도 SLAM 동작에 지장 없음.
 딜레이를 줄이려면 **설정 fps를 실제 fps에 맞추기** (버퍼 불일치 제거):

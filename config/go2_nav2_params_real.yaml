@@ -9,7 +9,7 @@ bt_navigator:
     use_sim_time: false
     global_frame: map
     robot_base_frame: base_link
-    odom_topic: /utlidar/robot_odom
+    odom_topic: /utlidar/robot_odom_restamped
     bt_loop_duration: 10
     default_server_timeout: 20
     default_nav_to_pose_bt_xml: "/opt/ros/humble/share/nav2_bt_navigator/behavior_trees/navigate_to_pose_w_replanning_and_recovery.xml"
@@ -330,7 +330,7 @@ velocity_smoother:
     min_velocity: [-0.25, -0.2, -0.5]  # 시뮬 [-0.5, -0.4, -1.0] → 실로봇 보수적
     max_accel: [1.5, 1.5, 2.0]         # 시뮬 [2.5, 2.5, 3.2] → 실로봇 보수적
     max_decel: [-1.5, -1.5, -2.0]      # 시뮬 [-2.5, -2.5, -3.2] → 실로봇 보수적
-    odom_topic: /utlidar/robot_odom
+    odom_topic: /utlidar/robot_odom_restamped
     odom_duration: 0.1
     deadband_velocity: [0.0, 0.0, 0.0]
     velocity_timeout: 1.0

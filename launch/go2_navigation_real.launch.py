@@ -17,6 +17,8 @@ def generate_launch_description():
     depth_topic = LaunchConfiguration("depth_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     odom_topic = LaunchConfiguration("odom_topic")
+    nav2_odom_topic = LaunchConfiguration("nav2_odom_topic")
+    odom_restamper_publish_tf = LaunchConfiguration("odom_restamper_publish_tf")
 
     nav2_params_file = os.path.join(_PROJECT_DIR, "config", "go2_nav2_params_real.yaml")
     nav2_bringup_dir = get_package_share_directory("nav2_bringup")
@@ -25,13 +27,13 @@ def generate_launch_description():
         root_key="",
         param_rewrites={
             "use_sim_time": "false",
-            "odom_topic": odom_topic,
+            "odom_topic": nav2_odom_topic,
         },
         convert_types=True,
     )
 
     # [카메라는 Go2 내부에서 ROS2로 직접 실행]
-    # 확인된 RealSense 실행 예시:
+    # 현재 운영 기준:
     #
     #   ros2 launch realsense2_camera rs_launch.py \
     #     depth_module.profile:=424x240x30 \
@@ -40,7 +42,8 @@ def generate_launch_description():
     #     enable_infra2:=false \
     #     align_depth.enable:=true
     #
-    # 이 경우 기본 토픽은 /camera/... 네임스페이스를 사용한다.
+    # 이 경로를 기준으로 /camera/... 네임스페이스의 aligned depth를 사용한다.
+    # docs/04_real_robot_deploy.md의 raw depth / PC 정렬 경로는 과거 트러블슈팅 기록이다.
 
     # RTAB-Map (실로봇 전용)
     rtabmap_launch = IncludeLaunchDescription(
@@ -53,6 +56,7 @@ def generate_launch_description():
             "depth_topic": depth_topic,
             "camera_info_topic": camera_info_topic,
             "odom_topic": odom_topic,
+            "odom_restamper_publish_tf": odom_restamper_publish_tf,
         }.items(),
     )
 
@@ -93,7 +97,17 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "odom_topic",
             default_value="/utlidar/robot_odom",
-            description="Odometry topic published by the robot bridge.",
+            description="Raw odometry topic published by the robot bridge.",
+        ),
+        DeclareLaunchArgument(
+            "nav2_odom_topic",
+            default_value="/utlidar/robot_odom_restamped",
+            description="Odometry topic consumed by Nav2.",
+        ),
+        DeclareLaunchArgument(
+            "odom_restamper_publish_tf",
+            default_value="false",
+            description="Whether odom_restamper republishes odom->base_link TF.",
         ),
         rtabmap_launch,
         nav2_launch,

@@ -34,8 +34,7 @@ By providing a pre-configured pipeline of **RTAB-Map** and **Nav2**, it enables 
   - [2. 3D SLAM](#2-3d-slam-rtab-map-in-isaac-sim)
   - [3. Autonomous Navigation](#3-autonomous-navigation-nav2)
   - [4. GUI Controller](#4-gui-controller)
-  - [5. Reinforcement Learning](#5-reinforcement-learning)
-  - [6. Real-world Deployment](#6-real-world-deployment)
+  - [5. Real-world Deployment](#5-real-world-deployment)
 - [🤝 Acknowledgements](#-acknowledgements)
 - [📄 License](#-license)
 
@@ -44,18 +43,21 @@ By providing a pre-configured pipeline of **RTAB-Map** and **Nav2**, it enables 
 ## 🗺️ Project Roadmap
 This project aims to build a comprehensive intelligence framework for the Unitree Go2 robot through a phased development approach.
 
-- [x] **Phase 1: 3D SLAM & Localization**
-  - [x] RTAB-Map integration with Isaac Sim visual/depth sensors.
-  - [x] Point cloud mapping and automated map database management.
-- [x] **Phase 2: Autonomous Navigation (Nav2)**
-  - [x] Integration with ROS 2 Nav2 stack for autonomous waypoint tracking.
-  - [x] Dynamic obstacle avoidance and optimized Nav2 parameter tuning.
-- [ ] **Phase 3: Advanced Reinforcement Learning**
-  - [ ] Training custom locomotion policies using NVIDIA Isaac Lab.
-  - [ ] Integration of vision-conditioned gait or task-oriented behaviors.
-- [ ] **Phase 4: Hardware Deployment & Sim2Real**
-  - [ ] ROS 2 bridge development for physical Unitree Go2 hardware.
-  - [ ] Comprehensive Sim2Real transfer guide and real-world validation.
+- [x] **Phase 1: 3D SLAM & Simulation (Completed)**
+  - RTAB-Map integration with Isaac Sim visual/depth sensors.
+  - Point cloud mapping and automated map database management.
+- [x] **Phase 2: Autonomous Navigation (Completed)**
+  - Integration with ROS 2 Nav2 stack for autonomous waypoint tracking.
+  - Dynamic obstacle avoidance and optimized Nav2 parameter tuning.
+- [x] **Phase 3: Intelligent GUI & Mission Control (Completed)**
+  - Real-time telemetry dashboard & Live joint visualization.
+  - Interactive mission planning with automated waypoint bridging.
+- [x] **Phase 4: Real-world Hardware Deployment (Completed)**
+  - **Successful Sim2Real transfer** to physical Unitree Go2 hardware.
+  - Support for **STT (Speech-to-Text) & Natural Language Commands** (Predefined matching).
+- [ ] **Phase 5: Advanced LLM Intelligence (Next Step)**
+  - Integration of LLM-based reasoning for complex instruction tracking.
+  - Advanced scene understanding for autonomous task-oriented behavior.
 
 ## 🛠️ Prerequisites
 Before getting started, ensure your system meets the following requirements:
@@ -105,16 +107,26 @@ Install a compatible `go2_description` package and build it in your ROS workspac
    rosdep install --from-paths src --ignore-src -r -y
    ```
    This reads both `go2_gui_controller` and `go2_project_dependencies` under `src/`.
-5. **Source your ROS environments in each ROS terminal before running commands**:
+5. **GUI Controller Setup (Mandatory)**:
+   Before running the interactive controller for the first time, you need to set up and build the GUI package in a separate workspace:
+   - **Create an external workspace and link the package**:
+     ```bash
+     cd ~
+     mkdir -p go2_gui_controller_ws/src
+     ln -s ~/go2_intelligence_framework/src/go2_gui_controller ~/go2_gui_controller_ws/src/
+     ```
+   - **Build the package**:
+     ```bash
+     cd ~/go2_gui_controller_ws
+     source /opt/ros/humble/setup.bash
+     colcon build --packages-select go2_gui_controller
+     ```
+6. **Source your ROS environments in each ROS terminal before running commands**:
    ```bash
    source /opt/ros/humble/setup.bash
    source ~/go2_description_ws/install/setup.bash
+   source ~/go2_gui_controller_ws/install/setup.bash
    ```
-
-GUI note:
-
-- `go2_gui_controller` is built in a separate workspace.
-- See [GUI Controller Setup](#-gui-controller-setup) below before running the GUI.
 
 ---
 
@@ -129,6 +141,9 @@ go2_intelligence_framework/
 ```
 
 ---
+
+> [!IMPORTANT]
+> **Execution Rule**: All commands listed below must be executed within the project's root directory (`~/go2_intelligence_framework`) unless otherwise specified.
 
 ## 🏗️ Modules
 
@@ -190,7 +205,6 @@ Before running SLAM or Navigation, you can explore your mapped environment by ma
 To run the basic simulation and control the robot with your keyboard:
 
 ```bash
-cd ~/go2_intelligence_framework
 conda activate <isaacsim_env_name>
 python scripts/go2_sim.py
 ```
@@ -220,7 +234,6 @@ To run the full simulation and SLAM pipeline, please open three separate termina
 
 **Terminal A**: Start the Go2 simulation environment
 ```bash
-cd ~/go2_intelligence_framework
 conda activate <isaacsim_env_name>
 python scripts/go2_sim.py
 ```
@@ -228,18 +241,15 @@ python scripts/go2_sim.py
 **Terminal B**: Launch the RTAB-Map node
 - **Mapping Mode** (for creating a new map):
 ```bash
-cd ~/go2_intelligence_framework
 ros2 launch launch/go2_rtabmap.launch.py
 ```
-- **Localization Mode** (Use this mode to estimate current position based on an existing map without creating a new one):
+- **Localization Mode**:
 ```bash
-cd ~/go2_intelligence_framework
 ros2 launch launch/go2_rtabmap.launch.py localization:=true
 ```
 
 **Terminal C**: Open RViz Visualization
 ```bash
-cd ~/go2_intelligence_framework
 rviz2 -d config/go2_sim.rviz
 ```
 
@@ -275,20 +285,17 @@ To run the Nav2 autonomous navigation, follow these steps in separate terminals.
 
 **Terminal A**: Start the Go2 simulation environment
 ```bash
-cd ~/go2_intelligence_framework
 conda activate <isaacsim_env_name>
 python scripts/go2_sim.py
 ```
 
 **Terminal B**: Launch the Nav2 stack
 ```bash
-cd ~/go2_intelligence_framework
 ros2 launch launch/go2_navigation.launch.py
 ```
 
 **Terminal C**: Open RViz Visualization
 ```bash
-cd ~/go2_intelligence_framework
 rviz2 -d config/go2_sim.rviz
 ```
 
@@ -310,50 +317,42 @@ rviz2 -d config/go2_sim.rviz
 
 #### 🎮 Interactive Control & Monitoring Dashboard
 In addition to RViz's `2D Goal Pose`, you can use the **GUI Controller** for more intuitive robot management, mission planning, and real-time monitoring.
+
+> 🛠️ **Optimization Note**: After running the basic simulation (`python scripts/go2_sim.py`), **all other terminal-based launch commands** (SLAM, Navigation, etc.) can be fully replaced and managed through this GUI dashboard for a more streamlined experience.
+
 *   **Intuitive Teleoperation**: Direct control via GUI buttons.
 *   **Real-time Telemetry Dashboard**: Monitor the robot's state, including live charts for individual joint values directly alongside RViz.
 *   **Mission Planning**: Set waypoints and monitor robot status in real-time.
-*   **Future Update**: Support for **Natural Language Commands** (e.g., "Go to the kitchen") to automatically set corresponding waypoints via the GUI bridge.
-
-#### 🛠️ GUI Controller Setup
-Before running the interactive controller for the first time, you need to set up and build the GUI package in a separate workspace:
-
-1. **Create an external workspace and link the package**:
-   ```bash
-   # Navigate to your home directory
-   cd ~
-   mkdir -p go2_gui_controller_ws/src
-   # Link the GUI package from this repository to the new workspace
-   ln -s ~/go2_intelligence_framework/src/go2_gui_controller ~/go2_gui_controller_ws/src/
-   ```
-
-2. **Build the package**:
-   ```bash
-   cd ~/go2_gui_controller_ws
-   source /opt/ros/humble/setup.bash
-   colcon build --packages-select go2_gui_controller
-   ```
-   > 💡 **Tip**: You only need to run the build command once. If there are no code changes, you can skip this step in future sessions.
+*   **Natural Language Commands (Current)**: Support for predefined simple commands via text or **STT (Speech-to-Text)** voice input to automatically set corresponding waypoints via the GUI bridge.
+*   **Future Update**: Full integration of LLM-based autonomous reasoning for advanced complex scene understanding and complex instruction tracking.
 
 #### 🚀 How to Run
-While `go2_sim.py` is running, open a new terminal and execute the following command to launch the GUI Controller:
+While `go2_sim.py` is running, open a new terminal and launch the GUI Controller:
 
 ```bash
-cd ~/go2_intelligence_framework
 bash scripts/run_gui_controller.sh
 ```
-
 ---
 
-### 5. Reinforcement Learning
-*Coming Soon: RL environment setup and policy training for Go2 locomotion and intelligent behavior.*
+### 5. Real-world Deployment
+This section showcases the implementation of the framework on the physical Unitree Go2 robot, demonstrating the robustness of the SLAM and navigation systems outside of the simulation.
 
----
+> 💡 **Reference (LiDAR-based SLAM)**: For an alternative implementation using **4D LiDAR L1** for RTAB-Map, please refer to the following repository: [Go2_L1_Lidar_Rtabmap](https://github.com/ctrlcvlab/Go2_L1_Lidar_Rtabmap)
 
-### 6. Real-world Deployment
-*Coming Soon: Guidelines and scripts for deploying the developed intelligence on the actual Unitree Go2 robot.*
+#### 🎥 Real-world 3D SLAM (RTAB-Map) Execution
+<div align="center">
+  <a href="https://youtu.be/naLCEioS-cA">
+    <img src="https://img.youtube.com/vi/naLCEioS-cA/0.jpg" alt="RTAB-Map Real-world SLAM Execution" width="600">
+  </a>
+  <p><i>Click the image to watch the <b>3D SLAM (RTAB-Map)</b> running on the real Unitree Go2 hardware.</i></p>
+</div>
 
----
+#### 🚀 How to Run
+To deploy on the actual Unitree Go2 robot, run the controller script to start the interface and hardware bridge:
+
+```bash
+bash scripts/run_gui_controller.sh
+```
 
 ## 🤝 Acknowledgements
 This project leverages several open-source libraries and frameworks:

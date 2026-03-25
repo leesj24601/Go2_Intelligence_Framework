@@ -11,6 +11,7 @@ def generate_launch_description():
     depth_topic = LaunchConfiguration("depth_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
     odom_topic = LaunchConfiguration("odom_topic")
+    odom_restamper_publish_tf = LaunchConfiguration("odom_restamper_publish_tf")
     restamped_odom_topic = "/utlidar/robot_odom_restamped"
     rgbd_topic = "/camera/rgbd_image"
 
@@ -20,7 +21,7 @@ def generate_launch_description():
         name="odom_restamper",
         output="screen",
         parameters=[{
-            "publish_tf": True,
+            "publish_tf": odom_restamper_publish_tf,
         }],
         remappings=[
             ("input_odom", odom_topic),
@@ -35,8 +36,8 @@ def generate_launch_description():
         output="screen",
         parameters=[{
             "approx_sync": True,
-            "approx_sync_max_interval": 0.5,
-            "queue_size": 30,
+            "approx_sync_max_interval": 0.2,
+            "queue_size": 20,
             "qos": 1,
         }],
         remappings=[
@@ -154,7 +155,10 @@ def generate_launch_description():
     )
 
     # Depth → LaserScan 변환
-    # 현재 실기 설정: 424×240, 요청 15Hz / 실측 aligned depth 약 13Hz
+    # 현재 실기 설정: 424×240, 요청 15Hz
+    # 실측 결과 raw color/depth는 align off 시 15Hz가 가능하고,
+    # align_depth.enable:=true 운영에서는 Go2 내부 약 10Hz, PC 수신 약 8Hz로 내려간다.
+    # scan_time은 실제 소비처인 PC의 aligned depth 기준으로 0.12로 둔다.
     # scan_height: 10행 (240 기준 중앙 약 4%) → 시뮬 설정과 같은 비율
     depthimage_to_laserscan = Node(
         package="depthimage_to_laserscan",
@@ -162,7 +166,7 @@ def generate_launch_description():
         name="depthimage_to_laserscan",
         parameters=[{
             "scan_height": 10,       # 240행 기준 중앙 10행 사용
-            "scan_time": 0.08,       # 실측 depth 주기(~76ms)에 맞춰 보정
+            "scan_time": 0.12,       # PC 실수신 aligned depth 약 8Hz 기준
             "range_min": 0.3,        # D435i 최소 거리 (시뮬 0.2 → 0.3)
             "range_max": 4.0,        # D435i 실용 범위 (시뮬 5.0 → 4.0)
             "output_frame": "camera_link",
@@ -200,6 +204,11 @@ def generate_launch_description():
             "odom_topic",
             default_value="/utlidar/robot_odom",
             description="Raw odometry topic published by the robot bridge.",
+        ),
+        DeclareLaunchArgument(
+            "odom_restamper_publish_tf",
+            default_value="false",
+            description="Whether odom_restamper republishes odom->base_link TF.",
         ),
         odom_restamper,
         rgbd_sync,

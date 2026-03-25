@@ -40,7 +40,9 @@
 
 ### 2.1 RealSense 입력 토픽 기준 통일
 
-현재 가장 먼저 정리해야 할 부분이다.
+상태: **정리 완료**
+
+현재 가장 먼저 정리해야 할 부분이었고, 운영 기준 문서화는 완료했다.
 
 운영 기준은 이제 아래처럼 보는 것이 맞다.
 
@@ -56,7 +58,7 @@
 
 로 보는 것이 맞다.
 
-현재 저장소 안에는 실로봇 카메라 입력 기준이 두 가지로 섞여 있다.
+이제 운영 기준은 아래처럼 고정한다.
 
 #### 현재 launch 기준
 
@@ -68,7 +70,7 @@
 
 - `launch/go2_rtabmap_real.launch.py`
 
-#### 배포 문서 기준
+#### 이전 충돌 지점
 
 - Go2 내부 RealSense는 `align_depth:=false` 권장
 - depth는 raw depth (`/my_go2/depth/image_rect_raw`) 또는
@@ -87,33 +89,35 @@
 - 따라서 지금 필요한 것은 선택지가 아니라
   **현재 운영 기준을 저장소 전체에 명확히 반영하는 일**이다.
 
-#### 수정 권장 방향
+#### 정리 결과
 
-운영 기준은 아래로 확정한다.
+운영 기준은 아래로 확정했다.
 
 1. **Go2에서 제공되는 align depth 사용**
 2. `go2_rtabmap_real.launch.py`의 현재 입력 구조를 기준 구조로 유지
 3. raw depth / PC register를 기본 경로처럼 적어 둔 문서는
    "과거 검토안" 또는 "대안 경로"로 격하하거나 삭제
 
-우선 정리 대상:
+정리한 대상:
 
 - `docs/04_real_robot_deploy.md`
 - `docs/11_rtabmap_real_topics.md`
 - `launch/go2_navigation_real.launch.py` 주석
 
-필요하면 추가 확인:
+추가로 운영 중 확인할 항목:
 
 - 실제 운영 토픽 namespace가 `/camera/...`로 최종 고정인지
 - 또는 Go2 내부 namespace만 다르고 브리지에서 `/camera/...`로 맞춰 받고 있는지
 
 #### 우선순위
 
-가장 높음
+완료
 
 ---
 
 ### 2.2 `odom_restamper`의 TF 중복 발행 가능성 확인 후 구조 정리
+
+상태: **기본값 조정 완료**
 
 현재 `odom_restamper`는 보정된 odom뿐 아니라
 `odom -> base_link` TF도 다시 발행한다.
@@ -144,18 +148,20 @@
 #### 코드 차원에서 필요한 개선
 
 - `publish_tf`는 이미 파라미터화되어 있으므로 유지 가능
-- 다만 launch에서 이 값을 명시적으로 관리하도록 정리할 필요가 있음
+- launch에서 이 값을 명시적으로 관리하도록 정리했고, 기본값은 `false`로 변경함
 - "원본 TF 있음/없음"에 따른 운영 모드를 문서화해야 함
 
 #### 우선순위
 
-높음
+기본값 변경 완료, 문서화 계속 유지
 
 ---
 
 ### 2.3 `rgbd_sync` 파라미터를 실측 기준으로 재확정
 
-현재 값:
+상태: **2차 조정 완료**
+
+이전 값:
 
 - `approx_sync: true`
 - `approx_sync_max_interval: 0.5`
@@ -169,6 +175,17 @@
 - 동기화 허용폭이 너무 크면
   오래된 RGB/depth 조합이 묶일 위험이 있다.
 
+#### 실측 확인 결과
+
+2026-03-25 실측:
+
+- `ApproximateTimeSynchronizer(slop=0.5)` 기준 매칭된 20샘플에서
+  - `depth - rgb`: 평균 약 `0.0567s`
+  - 최대 약 `0.0667s`
+  - `camera_info - rgb`: `0.0s`
+
+즉 현재 카메라 입력 기준에서는 `0.5s`가 필요 이상으로 넓다.
+
 #### 수정 권장 방향
 
 - 실제 RGB/depth/camera_info의 stamp 차이를 측정
@@ -177,19 +194,23 @@
 
 #### 현재 판단
 
-- `approx_sync: true`는 유지 권장
-- `approx_sync_max_interval: 0.5`는 재검토 필요
-- `queue_size: 30`도 재검토 필요
+- `approx_sync: true`는 유지
+- `approx_sync_max_interval: 0.1`, `queue_size: 10`으로 1차 축소했을 때
+  `/camera/rgbd_image`가 약 `0.4Hz` 수준으로 떨어져 실운영에서 과도한 드롭이 발생했다.
+- 따라서 현재 운영값은 `approx_sync_max_interval: 0.2`, `queue_size: 20`으로 다시 완화했다.
+- 이후 실제 주행 중 `/camera/rgbd_image`가 aligned depth 수신률에 가깝게 안정적으로 따라오는지 다시 확인
 
 #### 우선순위
 
-높음
+2차 조정 완료, 런타임 재확인 필요
 
 ---
 
 ## 3. 다음 단계로 수정해야 하는 항목
 
 ### 3.1 `base_link -> camera_link` 회전값 검증
+
+상태: **현재 값 유지**
 
 현재 실로봇 launch는 아래 값을 사용한다.
 
@@ -200,6 +221,7 @@
 
 - 위치값 `(0.33, 0.0, 0.09)`는 주석상 수동 실측 근거가 있다.
 - 하지만 회전값 `0,0,0`은 "카메라가 정확히 정면/수평 장착"이라는 가정이다.
+- 현재 확인 기준으로 카메라 렌즈가 정확히 전방을 보고 있으므로, 현 시점에서는 `0,0,0` 유지 판단이 타당하다.
 
 #### 왜 수정이 필요한가
 
@@ -214,11 +236,13 @@
 
 #### 우선순위
 
-중간
+현재는 추가 수정 불필요
 
 ---
 
 ### 3.2 `odom_restamper` 발행 주기(`publish_rate_hz`) 정리
+
+상태: **우선순위 하향**
 
 현재 코드 기본값은 `10.0Hz`이다.
 
@@ -228,6 +252,9 @@
 - 실제 입력 odom 주파수와 다르면
   너무 느리게 재발행하거나
   같은 pose를 반복 송신하게 된다.
+- 다만 현재 SLAM은 restamped odom topic을 직접 소비하지 않고 TF를 사용한다.
+- 현재 restamped odom의 실사용처는 주로 Nav2 쪽이며, raw odom의 2024년 timestamp 문제를 피하기 위해
+  `go2_navigation_real.launch.py` / `go2_nav2_params_real.yaml`는 `/utlidar/robot_odom_restamped`를 보도록 이미 조정했다.
 
 #### 수정 권장 방향
 
@@ -237,18 +264,20 @@
 
 #### 우선순위
 
-중간
+SLAM 기준 낮음, Navigation 안정화 단계에서 재검토
 
 ---
 
 ### 3.3 `depthimage_to_laserscan`의 `scan_time`를 실제 카메라 fps와 맞추기
+
+상태: **1차 조정 완료**
 
 이 항목은 질문 범위의 핵심 세 요소는 아니지만,
 실운영에서는 같이 정리해야 한다.
 
 #### 현재 상태
 
-- launch 값: `0.08`
+- 이전 launch 값: `0.08`
 - 배포 문서에는 실제 fps에 따라 `0.067 / 0.167 / 0.250` 등 변경 필요하다고 적혀 있음
 
 #### 왜 수정이 필요한가
@@ -256,9 +285,42 @@
 - 현재 launch와 문서가 완전히 일치하지 않는다.
 - Nav2 costmap이 `/scan`을 사용하므로 실사용 품질에 영향이 있다.
 
+#### 실측 확인 결과
+
+2026-03-25 실측:
+
+- 요청 설정: `424x240x15`, `enable_sync:=true`, `align_depth.enable:=true`
+- Go2 내부:
+  - `/camera/color/image_raw`: 약 `10.4Hz`
+  - `/camera/depth/image_rect_raw`: 약 `11~12Hz`
+  - `/camera/aligned_depth_to_color/image_raw`: 약 `10.4Hz`
+- Go2 내부에서 `align_depth.enable:=false`로 끄면:
+  - `/camera/color/image_raw`: 약 `15.0Hz`
+  - `/camera/depth/image_rect_raw`: 약 `15.0Hz`
+- PC 수신:
+  - `/camera/aligned_depth_to_color/image_raw`: 안정적일 때 약 `8.6Hz`
+
+즉 원본 센서 자체는 15Hz 출력을 낼 수 있고,
+현재 실운영 fps 저하는 **Go2 내부 align 처리**와 **PC로 전달되는 aligned depth의 추가 손실**로 해석하는 것이 맞다.
+
+현재 Go2 내부 병목 후보는 두 단계로 나눈다.
+
+- `librealsense` / `realsense2_camera` 내부의 **align 연산 자체**
+- align 결과를 만들기 위해 color/depth 프레임을 맞춰 기다리는 **sync 동작**
+
+현재까지의 실측은 "`align_depth.enable:=false`이면 15Hz, `align_depth.enable:=true`이면 약 10Hz"까지는 보여주지만,
+위 두 후보의 기여도를 정량 분리한 상태는 아니다.
+이를 더 자르려면 `enable_sync:=false`, `align_depth.enable:=true` 조합의 추가 A/B 테스트가 필요하다.
+
+#### 현재 판단
+
+- `scan_time`을 `0.12`로 재조정
+- 기준은 요청 15Hz가 아니라 PC에서 실제 소비하는 aligned depth 약 8Hz
+- 이후 실제 주행 중 `/scan` 갱신감과 Nav2 장애물 반응을 다시 확인
+
 #### 우선순위
 
-중간
+1차 조정 완료, 런타임 재확인 필요
 
 ---
 
@@ -288,7 +350,18 @@ ROS optical frame 관례에 맞춘 표준 회전값으로 보는 것이 맞다.
 
 이 부분은 현재 프로젝트 목적이
 "실내 평면 RTAB-Map + Nav2"라는 점을 고려하면
-설계 의도가 명확하고 유지 타당성이 높다.
+설계 의도는 명확하다.
+
+다만 "Go2라서 roll/pitch를 무조건 버려도 된다"는 뜻은 아니다.
+
+- 현재 구조에서 RTAB-Map 본체는 upstream `odom -> base_link` TF를 사용하므로
+  planarized odom이 SLAM 본체의 자세 추정 경로를 직접 대체하지는 않는다.
+- `/utlidar/robot_odom_restamped`는 현재 Nav2용 2D odom 성격이 강해서
+  평면 실내 주행에서는 타당하다.
+- 반대로 경사로, 단차, 3D 자세 제어, 자세 안정화처럼 roll/pitch가 의미 있는 경우에는
+  이 planarized odom을 그대로 쓰면 위험할 수 있다.
+- 다행히 raw `/utlidar/robot_odom`은 그대로 남아 있으므로
+  3D 소비자는 raw odom을 보게 분리하는 것이 맞다.
 
 즉 수정 대상은 planarization 자체보다
 
