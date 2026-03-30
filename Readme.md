@@ -133,12 +133,17 @@ Install a compatible `go2_description` package and build it in your ROS workspac
 ## 📂 Project Structure
 ```text
 go2_intelligence_framework/
+├── assets/             # USD environment files and header images for Isaac Sim
 ├── config/             # Configuration files for Nav2 and RViz
+├── docs/               # Design documents and development notes
 ├── launch/             # ROS 2 launch files for SLAM and Navigation
 ├── maps/               # Map databases (RTAB-Map .db files)
 ├── policies/           # Pre-trained RL policies for Go2 locomotion
 ├── scripts/            # Core simulation and environment scripts
+└── src/                # ROS 2 packages (GUI controller, dependencies)
 ```
+
+> 📖 For a full analysis of all directories, modules, data flow, ROS topics, and TF frames, see **[docs/architecture.md](docs/architecture.md)**.
 
 ---
 
