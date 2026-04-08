@@ -1,3 +1,11 @@
+---
+tags: [project, research, stair-navigation]
+status: research
+project: go2_intelligence_framework
+type: research-notes
+created: 2026-02-24
+---
+
 # 09. Go2 복층 / 계단 Navigation Direction (2026)
 
 ## Goal

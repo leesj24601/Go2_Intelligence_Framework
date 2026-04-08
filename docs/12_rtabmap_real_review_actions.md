@@ -1,3 +1,11 @@
+---
+tags: [project, rtabmap, review, real-robot]
+status: in-progress
+project: go2_intelligence_framework
+type: code-review
+created: 2026-03-25
+---
+
 # RTAB-Map Real 구성 검토 후 수정 필요 항목
 
 기준일: 2026-03-25
@@ -7,8 +15,8 @@
 - `launch/go2_rtabmap_real.launch.py`
 - `src/go2_gui_controller/go2_gui_controller/odom_restamper.py`
 - `config/go2_nav2_params_real.yaml`
-- `docs/04_real_robot_deploy.md`
-- `docs/11_rtabmap_real_topics.md`
+- `04_real_robot_deploy.md`
+- `11_rtabmap_real_topics.md`
 
 ## 1. 결론 요약
 
@@ -100,8 +108,8 @@
 
 정리한 대상:
 
-- `docs/04_real_robot_deploy.md`
-- `docs/11_rtabmap_real_topics.md`
+- `04_real_robot_deploy.md`
+- `11_rtabmap_real_topics.md`
 - `launch/go2_navigation_real.launch.py` 주석
 
 추가로 운영 중 확인할 항목:
@@ -401,8 +409,8 @@ ROS optical frame 관례에 맞춘 표준 회전값으로 보는 것이 맞다.
 
 - `launch/go2_rtabmap_real.launch.py`
 - `launch/go2_navigation_real.launch.py`
-- `docs/04_real_robot_deploy.md`
-- `docs/11_rtabmap_real_topics.md`
+- `04_real_robot_deploy.md`
+- `11_rtabmap_real_topics.md`
 
 ### Step 3
 
@@ -434,8 +442,8 @@ TF 발행 주체 확인 후 `odom_restamper` 운영 방식 확정
 
 - `launch/go2_rtabmap_real.launch.py`
 - `launch/go2_navigation_real.launch.py`
-- `docs/04_real_robot_deploy.md`
-- `docs/11_rtabmap_real_topics.md`
+- `04_real_robot_deploy.md`
+- `11_rtabmap_real_topics.md`
 - `src/go2_gui_controller/go2_gui_controller/odom_restamper.py`
 
 조건에 따라 추가:

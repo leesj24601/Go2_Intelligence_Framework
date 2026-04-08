@@ -1,3 +1,11 @@
+---
+tags: [project, dependencies, setup]
+status: active
+project: go2_intelligence_framework
+type: reference
+created: 2026-02-24
+---
+
 # Project Dependencies
 
 ## Manual Install

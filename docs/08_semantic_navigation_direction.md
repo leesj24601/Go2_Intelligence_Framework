@@ -1,3 +1,11 @@
+---
+tags: [project, research, semantic-navigation]
+status: research
+project: go2_intelligence_framework
+type: research-notes
+created: 2026-02-24
+---
+
 # 08. Semantic Navigation Direction (2026)
 
 ## Goal

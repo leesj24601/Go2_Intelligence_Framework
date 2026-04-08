@@ -1,3 +1,11 @@
+---
+tags: [project, presentation, slam]
+status: completed
+project: go2_intelligence_framework
+type: presentation
+created: 2026-02-24
+---
+
 # Isaac Sim 기반 Go2 로봇 RTAB-Map SLAM 프로젝트 PPT 구성안
 
 프로젝트 마무리를 위한 프리젠테이션(PPT) 스토리보드 및 구성안입니다. 지시하신 3가지 큰 기준(구현 토대, 실행 흐름, 트러블슈팅)에 맞추어 내용을 다듬고 쫙 정리했습니다.

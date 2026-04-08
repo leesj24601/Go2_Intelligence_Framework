@@ -1,3 +1,11 @@
+---
+tags: [project, decision, rl-policy]
+status: completed
+project: go2_intelligence_framework
+type: architecture-decision
+created: 2026-02-24
+---
+
 # RL 정책 전환: IsaacLab 공식 → unitree_rl_lab
 
 **결정일**: 2026-02-24 | **상태**: ✅ 통합 완료
@@ -188,4 +196,4 @@ runner.alg.policy.load_state_dict(_actor_state, strict=False)
 
 ## 관련 문서
 
-- `03_nav2_plan.md` — Nav2 자율주행 구현 계획
+- [[03_nav2_plan]] — Nav2 자율주행 구현 계획

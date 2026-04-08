@@ -1,3 +1,12 @@
+---
+tags: [project, task-list, archived]
+status: archived
+project: go2_intelligence_framework
+type: task-list
+created: 2026-02-24
+updated: 2026-02-24
+---
+
 # Project: Isaac Sim Go2 ORB-SLAM3 Integration
 
 ## 0. 사전 환경 검증 (완료)

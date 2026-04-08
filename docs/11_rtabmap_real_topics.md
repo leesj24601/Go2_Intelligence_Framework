@@ -1,3 +1,11 @@
+---
+tags: [project, rtabmap, topics, real-robot]
+status: completed
+project: go2_intelligence_framework
+type: reference
+created: 2026-03-25
+---
+
 # RTAB-Map Real 실행 시 입출력 토픽 정리
 
 기준 파일:
@@ -39,7 +47,7 @@
 - `align_depth.enable:=true` 운영에서는 Go2 내부 `color/aligned_depth`가 약 `10Hz`, PC 수신 aligned depth는 약 `8Hz` 수준으로 떨어진다.
 - 현재 Go2 내부 병목은 `align_depth` 경로로 보며, 세부 후보는 `align` 연산 자체와 color/depth를 맞춰 기다리는 `sync` 동작이다.
 - 따라서 현재 실운영에서 카메라 관련 시간 파라미터는 요청 fps가 아니라 **PC 실수신 aligned depth 약 8Hz** 기준으로 잡는 것이 맞다.
-- `docs/04_real_robot_deploy.md`에 남아 있는 `align_depth:=false + raw depth/PC 정렬` 경로는 현재 기본 운영 경로가 아니라 과거 트러블슈팅 기록으로 봐야 한다.
+- [[04_real_robot_deploy]]에 남아 있는 `align_depth:=false + raw depth/PC 정렬` 경로는 현재 기본 운영 경로가 아니라 과거 트러블슈팅 기록으로 봐야 한다.
 
 맵 생성에 실제로 핵심적으로 쓰이는 입력은 아래 2가지다.
 

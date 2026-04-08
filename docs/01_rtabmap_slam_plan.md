@@ -1,3 +1,12 @@
+---
+tags: [project, plan, slam, rtabmap]
+status: completed
+project: go2_intelligence_framework
+type: implementation-plan
+created: 2026-02-24
+updated: 2026-02-24
+---
+
 # Implementation Plan: Go2 RTAB-Map SLAM in Isaac Sim
 
 ## Goal

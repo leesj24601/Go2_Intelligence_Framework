@@ -1,3 +1,11 @@
+---
+tags: [project, plan, gui, navigation]
+status: in-progress
+project: go2_intelligence_framework
+type: implementation-plan
+created: 2026-02-24
+---
+
 # Implementation Plan: Go2 GUI Controller for Button and Natural-Language Navigation
 
 ## Goal

@@ -1,3 +1,11 @@
+---
+tags: [project, plan, nav2, navigation]
+status: completed
+project: go2_intelligence_framework
+type: implementation-plan
+created: 2026-02-24
+---
+
 # Implementation Plan: Go2 Nav2 Navigation in Isaac Sim → Real Robot
 
 ## Goal
@@ -10,14 +18,14 @@ ROS2 Navigation2 (Nav2) 스택을 연동하여 Go2 로봇이 목표 지점(Goal 
 
 ## 전제 조건 (현재 상태)
 
-| 항목 | 상태 | 비고 |
-|------|------|------|
-| Nav2 패키지 | ✅ 설치됨 | nav2_bringup, nav2_mppi_controller 등 |
-| depthimage_to_laserscan | ✅ 설치됨 | Phase 2에서 사용 |
-| RTAB-Map | ✅ 구성됨 | `launch/go2_rtabmap.launch.py` |
-| TF 트리 | ✅ 구성됨 | `odom → base_link → camera_link → camera_optical_frame` |
-| /odom 토픽 | ✅ 발행 중 | OmniGraph IsaacComputeOdometry |
-| unitree_rl_lab 정책 | 🔄 훈련 중 | 시뮬은 기존 정책으로 먼저 검증 |
+| 항목                      | 상태      | 비고                                                      |
+| ----------------------- | ------- | ------------------------------------------------------- |
+| Nav2 패키지                | ✅ 설치됨   | nav2_bringup, nav2_mppi_controller 등                    |
+| depthimage_to_laserscan | ✅ 설치됨   | Phase 2에서 사용                                            |
+| RTAB-Map                | ✅ 구성됨   | `launch/go2_rtabmap.launch.py`                          |
+| TF 트리                   | ✅ 구성됨   | `odom → base_link → camera_link → camera_optical_frame` |
+| /odom 토픽                | ✅ 발행 중  | OmniGraph IsaacComputeOdometry                          |
+| unitree_rl_lab 정책       | 🔄 훈련 중 | 시뮬은 기존 정책으로 먼저 검증                                       |
 
 ## TF 트리 (완성 형태)
 

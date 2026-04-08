@@ -1,3 +1,11 @@
+---
+tags: [project, decision, odometry]
+status: completed
+project: go2_intelligence_framework
+type: architecture-decision
+created: 2026-02-24
+---
+
 # Odometry 전략 결정: LiDAR+IMU 퓨전 (전략 변경 기록)
 
 ## 배경

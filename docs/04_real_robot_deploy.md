@@ -1,6 +1,14 @@
+---
+tags: [project, deploy, real-robot]
+status: in-progress
+project: go2_intelligence_framework
+type: implementation-plan
+created: 2026-02-24
+---
+
 # Phase 6: 실로봇 배포
 
-> 사전 조건: unitree_rl_lab 훈련 완료 + 시뮬 검증 완료 (`docs/03_nav2_plan.md` Phase 0~5)
+> 사전 조건: unitree_rl_lab 훈련 완료 + 시뮬 검증 완료 ([[03_nav2_plan]] Phase 0~5)
 
 ---
 
