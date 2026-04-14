@@ -13,19 +13,17 @@
 ---
 
 ## 🎯 Overview
-The **Go2 Intelligence Framework** is an integrated autonomous system developed for the Unitree Go2 robot within the NVIDIA Isaac Sim environment. This framework bridges advanced reinforcement learning-based locomotion with robust ROS 2-based spatial intelligence (3D SLAM and Navigation). 
+The **Go2 Intelligence Framework** is an end-to-end quadruped autonomy framework for the Unitree Go2 robot. It connects **Isaac Sim-based simulation**, **RL-based locomotion execution**, **ROS 2 sensor streaming**, **RTAB-Map SLAM/localization**, **Nav2 autonomous navigation**, **GUI-based mission control**, and **physical Go2 deployment** into one reusable pipeline.
 
-By providing a pre-configured pipeline of **RTAB-Map** and **Nav2**, it enables users to seamlessly transition from low-level gait control to high-level autonomous mission planning in a high-fidelity simulation, laying the groundwork for real-world Sim2Real deployment.
-
----
+The focus is not only on moving a robot in simulation. The project is structured around a complete autonomy data flow: simulated robot and sensors generate ROS 2 streams, RTAB-Map builds and reuses a map database for localization, Nav2 consumes the localized pose and map to execute goals, and the GUI layer acts as the operator-facing mission control interface for simulation and real hardware.
 
 ---
 
 ## 📑 Table of Contents
 - [🎯 Overview](#-overview)
+- [🏛️ System Architecture](#️-system-architecture)
 - [🗺️ Project Roadmap](#️-project-roadmap)
 - [🛠️ Prerequisites](#️-prerequisites)
-- [📦 Go2 URDF Dependency](#go2-urdf-dependency)
 - [⚙️ Installation & Setup](#️-installation--setup)
 - [📂 Project Structure](#-project-structure)
 - [🏗️ Modules](#️-modules)
@@ -33,10 +31,63 @@ By providing a pre-configured pipeline of **RTAB-Map** and **Nav2**, it enables 
   - [1. Basic Robot Simulation](#1-basic-robot-simulation-manual-control)
   - [2. 3D SLAM](#2-3d-slam-rtab-map-in-isaac-sim)
   - [3. Autonomous Navigation](#3-autonomous-navigation-nav2)
-  - [4. GUI Controller](#4-gui-controller)
+  - [4. GUI Controller / Mission Control](#4-gui-controller--mission-control)
   - [5. Real-world Deployment](#5-real-world-deployment)
 - [🤝 Acknowledgements](#-acknowledgements)
 - [📄 License](#-license)
+
+---
+
+## 🏛️ System Architecture
+
+The framework is organized as a layered autonomy stack rather than a collection of independent demos. Each layer has a clear input/output contract, and the same ROS 2-centered workflow is reused from simulation to real Go2 deployment.
+
+```mermaid
+flowchart TB
+    subgraph MISSION["🎮 Mission Control"]
+        GUI["Qt GUI / Web GUI\nTeleop · Waypoints · Telemetry · STT"]
+    end
+
+    subgraph AUTON["🧭 Autonomous Navigation"]
+        NAV["Nav2 — Path Planning & Control"]
+    end
+
+    subgraph SPATIAL["🗺️ Spatial Intelligence"]
+        direction LR
+        MAP["RTAB-Map\nMapping"] -->|save| DB[("Map DB")] -->|load| LOCAL["RTAB-Map\nLocalization"]
+    end
+
+    subgraph SENSOR["📡 Sensor & ROS 2 Bridge"]
+        SENS["RGB-D · LaserScan · Odometry · IMU · TF"]
+    end
+
+    subgraph LOCO["⚙️ Locomotion Layer"]
+        LOC["RL Policy — Motion Execution"]
+    end
+
+    subgraph SIM["🖥️ Simulation Environment"]
+        ENV["Isaac Sim · Isaac Lab · Go2 Model · USD Scene"]
+    end
+
+    ENV --> LOC
+    LOC --> SENS
+    SENS -->|"RGB-D · Odom · IMU"| MAP
+    SENS -->|"RGB-D · Odom · IMU"| LOCAL
+    SENS -->|"LaserScan · robot state"| NAV
+    SENS -->|"telemetry · joint states"| GUI
+    LOCAL -->|"map→odom TF · /map"| NAV
+    NAV -->|/cmd_vel| LOC
+    NAV -->|nav state| GUI
+    GUI -->|"goal / waypoint"| NAV
+    GUI -->|teleop| LOC
+
+    style MISSION fill:#fff7ed,stroke:#ea580c,color:#1e293b
+    style AUTON fill:#f0fdf4,stroke:#16a34a,color:#1e293b
+    style SPATIAL fill:#f5f3ff,stroke:#7c3aed,color:#1e293b
+    style SENSOR fill:#eff6ff,stroke:#3b82f6,color:#1e293b
+    style LOCO fill:#faf5ff,stroke:#9333ea,color:#1e293b
+    style SIM fill:#f1f5f9,stroke:#64748b,color:#1e293b
+```
 
 ---
 
@@ -52,9 +103,10 @@ This project aims to build a comprehensive intelligence framework for the Unitre
 - [x] **Phase 3: Intelligent GUI & Mission Control (Completed)**
   - Real-time telemetry dashboard & Live joint visualization.
   - Interactive mission planning with automated waypoint bridging.
+  - Support for **STT (Speech-to-Text) & Natural Language Commands** (Predefined matching).
+  - **HTML Web GUI** browser-based controller (no Qt dependency).
 - [x] **Phase 4: Real-world Hardware Deployment (Completed)**
   - **Successful Sim2Real transfer** to physical Unitree Go2 hardware.
-  - Support for **STT (Speech-to-Text) & Natural Language Commands** (Predefined matching).
 - [ ] **Phase 5: Advanced LLM Intelligence (Next Step)**
   - Integration of LLM-based reasoning for complex instruction tracking.
   - Advanced scene understanding for autonomous task-oriented behavior.
@@ -69,45 +121,33 @@ Before getting started, ensure your system meets the following requirements:
 - **Python**: 3.10 or 3.11
 - **Conda Environment**: Recommended (See Module Quick Start for activation)
 
-## 📦 Go2 URDF Dependency
-
-RViz visualization in this project requires a `go2_description` package in your ROS workspace.
-
-Recommended references:
-- https://github.com/Unitree-Go2-Robot/go2_description
-- https://github.com/unitreerobotics/unitree_ros
-
-Notes:
-- `go2_description` is the most direct dependency for RViz robot visualization in this project.
-- `unitree_ros` is the ROS1 repository that commonly includes description/Gazebo assets.
-
-Install a compatible `go2_description` package and build it in your ROS workspace before launching RViz features.
-
----
-
 ## ⚙️ Installation & Setup
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/leesj24601/go2_intelligence_framework.git
    cd go2_intelligence_framework
    ```
-2. **Initialize rosdep if needed**:
+2. **Install `go2_description` (RViz dependency)**:
+   RViz robot visualization requires a `go2_description` package in your ROS workspace. Clone and build a compatible package before launching RViz features.
+   - [go2_description](https://github.com/Unitree-Go2-Robot/go2_description) — direct RViz dependency for this project
+   - [unitree_ros](https://github.com/unitreerobotics/unitree_ros) — ROS1 repo that includes description/Gazebo assets
+3. **Initialize rosdep if needed**:
    ```bash
    sudo rosdep init
    rosdep update
    ```
    Skip this step if `rosdep` is already initialized on your machine.
-3. **Install Python-only dependencies**:
+4. **Install Python-only dependencies**:
    ```bash
    /usr/bin/python3 -m pip install --user -r requirements.txt
    ```
-4. **Install ROS dependencies with rosdep**:
+5. **Install ROS dependencies with rosdep**:
    ```bash
    source /opt/ros/humble/setup.bash
    rosdep install --from-paths src --ignore-src -r -y
    ```
    This reads both `go2_gui_controller` and `go2_project_dependencies` under `src/`.
-5. **GUI Controller Setup (Mandatory)**:
+6. **GUI Controller Setup (Mandatory)**:
    Before running the interactive controller for the first time, you need to set up and build the GUI package in a separate workspace:
    - **Create an external workspace and link the package**:
      ```bash
@@ -121,7 +161,7 @@ Install a compatible `go2_description` package and build it in your ROS workspac
      source /opt/ros/humble/setup.bash
      colcon build --packages-select go2_gui_controller
      ```
-6. **Source your ROS environments in each ROS terminal before running commands**:
+7. **Source your ROS environments in each ROS terminal before running commands**:
    ```bash
    source /opt/ros/humble/setup.bash
    source ~/go2_description_ws/install/setup.bash
@@ -133,11 +173,14 @@ Install a compatible `go2_description` package and build it in your ROS workspac
 ## 📂 Project Structure
 ```text
 go2_intelligence_framework/
-├── config/             # Configuration files for Nav2 and RViz
+├── assets/             # Isaac Sim assets, sample USD environments, hero image
+├── config/             # Configuration files for Nav2, RViz, GUI waypoints
+├── docs/               # Planning, references, and troubleshooting notes
 ├── launch/             # ROS 2 launch files for SLAM and Navigation
 ├── maps/               # Map databases (RTAB-Map .db files)
-├── policies/           # Pre-trained RL policies for Go2 locomotion
-├── scripts/            # Core simulation and environment scripts
+├── policies/           # Pre-trained RL policies used by the locomotion layer
+├── scripts/            # Core simulation, environment, and GUI launcher scripts
+└── src/                # ROS 2 packages including GUI controller dependencies
 ```
 
 ---
@@ -191,7 +234,7 @@ class MySlamEnvCfg(UnitreeGo2RoughEnvCfg):
 ### 1. Basic Robot Simulation (Manual Control)
 Before running SLAM or Navigation, you can explore your mapped environment by manually driving the Go2 robot. 
 
-> 🧠 **Policy Info**: The locomotion of the Go2 robot is driven by a reinforcement learning policy trained via the `unitree_rl_lab` framework. You can easily swap this with your own custom-trained policy by replacing the file in the `policies/` directory, provided your policy's network structure matches.
+> 🧠 **Locomotion Layer**: The Go2 uses a reinforcement learning policy trained via the `unitree_rl_lab` framework as its low-level mobility base. In this project, the policy is treated as the motion execution layer that enables higher-level SLAM, localization, navigation, and mission-control modules to operate on top of a walking quadruped. You can swap in your own custom-trained policy by replacing the file in the `policies/` directory, provided the policy network structure matches.
 
 #### 🎥 Demonstration Video
 <div align="center">
@@ -216,6 +259,11 @@ python scripts/go2_sim.py
 ### 2. 3D SLAM (RTAB-Map in Isaac Sim)
 Demonstrates 3D environmental mapping using RTAB-Map with the Go2 robot within the NVIDIA Isaac Sim environment.
 
+**Role in the pipeline**:
+- **Input**: RGB-D/depth sensing, LiDAR or point cloud streams, odometry, and TF from the Isaac Sim/ROS 2 bridge.
+- **Mapping output**: a 3D map and `maps/rtabmap.db` database.
+- **Localization output**: a pose estimate against the saved `maps/rtabmap_ground_truth.db` map for downstream Nav2 navigation.
+
 #### 🎥 Demonstration Video
 <div align="center">
   <a href="https://youtu.be/ZbYe7EWJfB8">
@@ -224,10 +272,11 @@ Demonstrates 3D environmental mapping using RTAB-Map with the Go2 robot within t
   <p><i>Click the image to watch the RTAB-Map SLAM demonstration in action.</i></p>
 </div>
 
-> 💾 **Map Database Management**: 
-> - **Auto-Overwrite**: In Mapping Mode, the map is saved at `maps/rtabmap.db`. This file is **overwritten** every time you restart the Mapping Mode.
-> - **Saving Your Map**: Once you have created a satisfactory map, rename `maps/rtabmap.db` to **`maps/rtabmap_ground_truth.db`**.
-> - **Auto-Load**: The **Localization Mode** is pre-configured to automatically load `maps/rtabmap_ground_truth.db` for stable positioning.
+> 💾 **Map Database Lifecycle**:
+> - **Mapping Mode**: RTAB-Map builds the environment map from ROS 2 sensor streams and saves it at `maps/rtabmap.db`.
+> - **Auto-Overwrite**: `maps/rtabmap.db` is **overwritten** every time Mapping Mode is restarted.
+> - **Map Promotion**: Once the map is satisfactory, rename `maps/rtabmap.db` to **`maps/rtabmap_ground_truth.db`**.
+> - **Localization Mode**: RTAB-Map automatically loads `maps/rtabmap_ground_truth.db`, estimates the robot pose against that known map, and provides the localization state used by Nav2.
 
 #### 🚀 How to Run
 To run the full simulation and SLAM pipeline, please open three separate terminals.
@@ -259,6 +308,10 @@ rviz2 -d config/go2_sim.rviz
 
 ### 3. Autonomous Navigation (Nav2)
 Integration with ROS 2 Nav2 stack for autonomous waypoint navigation and obstacle avoidance within the mapped environment.
+
+**Role in the pipeline**:
+- **Input**: `maps/rtabmap_ground_truth.db`, localized pose from RTAB-Map, live obstacle/state streams, and a goal pose from RViz or the GUI.
+- **Output**: planned path, controller output, velocity command, and waypoint tracking result for the Go2 locomotion layer.
 
 #### 🎥 Demonstration Videos
 
@@ -305,7 +358,7 @@ rviz2 -d config/go2_sim.rviz
 
 ---
 
-### 4. GUI Controller
+### 4. GUI Controller / Mission Control
 
 #### 🎥 Demonstration Video
 <div align="center">
@@ -315,27 +368,62 @@ rviz2 -d config/go2_sim.rviz
   <p><i>Click the image to watch the Complete Mission Control Dashboard & Autonomous Navigation demonstration.</i></p>
 </div>
 
-#### 🎮 Interactive Control & Monitoring Dashboard
-In addition to RViz's `2D Goal Pose`, you can use the **GUI Controller** for more intuitive robot management, mission planning, and real-time monitoring.
+#### 🎮 Mission Control Interface
+In addition to RViz's `2D Goal Pose`, you can use the **GUI Controller** as a mission-control layer for robot operation, runtime stack management, mission planning, and real-time monitoring.
+
+**Role in the pipeline**:
+- **Input**: telemetry, robot state, joint states, map/localization state, and Nav2 runtime state.
+- **Output**: teleoperation commands, waypoint/goal commands, predefined text/STT commands, and SLAM/Navigation/RViz runtime stack control.
+
+The project now provides **two controller frontends**:
+
+- **Qt GUI (`gui_controller`)**: the original desktop controller with charts and the existing workflow.
+- **HTML Web GUI (`web_controller`)**: a new browser-based controller that removes the Qt runtime dependency for day-to-day operation and is easier to debug remotely from the same PC.
 
 > 🛠️ **Optimization Note**: After running the basic simulation (`python scripts/go2_sim.py`), **all other terminal-based launch commands** (SLAM, Navigation, etc.) can be fully replaced and managed through this GUI dashboard for a more streamlined experience.
 
 *   **Intuitive Teleoperation**: Direct control via GUI buttons.
-*   **Real-time Telemetry Dashboard**: Monitor the robot's state, including live charts for individual joint values directly alongside RViz.
+*   **Real-time Telemetry Dashboard**: Monitor the robot's state in real-time. Live joint value charts are available in the Qt GUI.
 *   **Mission Planning**: Set waypoints and monitor robot status in real-time.
 *   **Natural Language Commands (Current)**: Support for predefined simple commands via text or **STT (Speech-to-Text)** voice input to automatically set corresponding waypoints via the GUI bridge.
-*   **Future Update**: Full integration of LLM-based autonomous reasoning for advanced complex scene understanding and complex instruction tracking.
+*   **Runtime Stack Control**: Start/stop SLAM, Navigation, and RViz directly from the controller. SLAM and Navigation are intentionally managed as **mutually exclusive** runtime stacks.
 
-#### 🚀 How to Run
-While `go2_sim.py` is running, open a new terminal and launch the GUI Controller:
+#### 🚀 How to Run (Qt GUI)
+While `go2_sim.py` is running, open a new terminal and launch the original Qt GUI controller:
 
 ```bash
 bash scripts/run_gui_controller.sh
 ```
+
+#### 🌐 How to Run (HTML Web GUI)
+While `go2_sim.py` is running, open a new terminal and launch the browser-based controller:
+
+```bash
+# Simulation mode
+ros2 launch go2_gui_controller go2_web_controller.launch.py mode:=sim
+
+# Real robot mode
+# ros2 launch go2_gui_controller go2_web_controller.launch.py mode:=real
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8080
+```
+
 ---
 
 ### 5. Real-world Deployment
 This section showcases the implementation of the framework on the physical Unitree Go2 robot, demonstrating the robustness of the SLAM and navigation systems outside of the simulation.
+
+The Sim2Real stage is designed around software-layer reuse rather than a one-off hardware demo. The deployment path preserves the core autonomy stack while replacing simulation-specific interfaces with hardware-facing ones:
+
+- **Locomotion policy/interface transfer** from the simulated mobility base to the physical Go2 execution path.
+- **ROS 2 autonomy stack reuse** for RTAB-Map, localization, Nav2, and mission-control communication.
+- **Sensor interface replacement** from Isaac Sim streams to real robot sensors while keeping the mapping/localization/navigation workflow consistent.
+- **Map/localization pipeline validation** on real-world sensor data.
+- **Mission control interface reuse** through the same GUI launcher and operator workflow.
 
 > 💡 **Reference (LiDAR-based SLAM)**: For an alternative implementation using **4D LiDAR L1** for RTAB-Map, please refer to the following repository: [Go2_L1_Lidar_Rtabmap](https://github.com/ctrlcvlab/Go2_L1_Lidar_Rtabmap)
 
@@ -348,7 +436,7 @@ This section showcases the implementation of the framework on the physical Unitr
 </div>
 
 #### 🚀 How to Run
-To deploy on the actual Unitree Go2 robot, run the controller script to start the interface and hardware bridge:
+Ensure the physical Go2 is connected and the ROS 2 network is configured. The onboard camera must also be enabled — in this setup, the camera was activated via SSH into the robot and launched through ROS 2.
 
 ```bash
 bash scripts/run_gui_controller.sh

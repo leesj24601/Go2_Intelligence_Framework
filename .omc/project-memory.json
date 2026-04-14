@@ -1,0 +1,228 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1776138500537,
+  "projectRoot": "/home/cvr/Desktop/sj/go2_intelligence_framework",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "requirements.txt"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pip",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets",
+      "docs",
+      "scripts",
+      "src"
+    ],
+    "gitBranches": null
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 4,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "architecture.png",
+        "go2_hero.png",
+        "simple_env.usd",
+        "slam_env.usd"
+      ]
+    },
+    "build": {
+      "path": "build",
+      "purpose": "Build output",
+      "fileCount": 2,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "COLCON_IGNORE"
+      ]
+    },
+    "config": {
+      "path": "config",
+      "purpose": "Configuration files",
+      "fileCount": 3,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "go2_nav2_params.yaml",
+        "go2_nav2_params_real.yaml",
+        "go2_sim.rviz"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "project_overview.md"
+      ]
+    },
+    "install": {
+      "path": "install",
+      "purpose": null,
+      "fileCount": 12,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "COLCON_IGNORE",
+        "_local_setup_util_ps1.py",
+        "_local_setup_util_sh.py",
+        "local_setup.bash",
+        "local_setup.ps1"
+      ]
+    },
+    "launch": {
+      "path": "launch",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "go2_navigation.launch.py",
+        "go2_navigation_real.launch.py",
+        "go2_rtabmap.launch.py",
+        "go2_rtabmap_real.launch.py"
+      ]
+    },
+    "log": {
+      "path": "log",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "COLCON_IGNORE"
+      ]
+    },
+    "maps": {
+      "path": "maps",
+      "purpose": null,
+      "fileCount": 4,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "rtabmap.db",
+        "rtabmap_424.db",
+        "rtabmap_ground_truth.db",
+        "rtabmap_real.db"
+      ]
+    },
+    "outputs": {
+      "path": "outputs",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "rosgraph.dot",
+        "rosgraph.png",
+        "rosgraph.svg"
+      ]
+    },
+    "policies": {
+      "path": "policies",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1776138500535,
+      "keyFiles": [
+        "go2_policy.pt"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 5,
+      "lastAccessed": 1776138500536,
+      "keyFiles": [
+        "cli_args.py",
+        "deploy_scene_mcp.py",
+        "go2_sim.py",
+        "my_slam_env.py",
+        "run_gui_controller.sh"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1776138500536,
+      "keyFiles": []
+    },
+    "docs/assets": {
+      "path": "docs/assets",
+      "purpose": "Static assets",
+      "fileCount": 1,
+      "lastAccessed": 1776138500536,
+      "keyFiles": [
+        "system_architecture.png"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "Readme.md",
+      "accessCount": 24,
+      "lastAccessed": 1776048839354,
+      "type": "file"
+    },
+    {
+      "path": "scripts/gen_architecture.py",
+      "accessCount": 3,
+      "lastAccessed": 1776048806427,
+      "type": "file"
+    },
+    {
+      "path": "assets/architecture.png",
+      "accessCount": 2,
+      "lastAccessed": 1776048813384,
+      "type": "file"
+    },
+    {
+      "path": ".claude/settings.local.json",
+      "accessCount": 1,
+      "lastAccessed": 1776046966108,
+      "type": "file"
+    },
+    {
+      "path": "launch/go2_rtabmap.launch.py",
+      "accessCount": 1,
+      "lastAccessed": 1776048167470,
+      "type": "file"
+    },
+    {
+      "path": "launch/go2_navigation.launch.py",
+      "accessCount": 1,
+      "lastAccessed": 1776048168233,
+      "type": "file"
+    },
+    {
+      "path": "scripts/go2_sim.py",
+      "accessCount": 1,
+      "lastAccessed": 1776048168497,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

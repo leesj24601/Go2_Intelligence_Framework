@@ -1,0 +1,10 @@
+{
+  "session_id": "omx-1775984815444-f2fa4h",
+  "native_session_id": "019d80f1-b475-7c71-90c5-3cb8ffb7430e",
+  "started_at": "2026-04-12T09:06:55.615Z",
+  "cwd": "/home/cvr/Desktop/sj/go2_intelligence_framework",
+  "pid": 1911240,
+  "platform": "linux",
+  "pid_start_ticks": 37473117,
+  "pid_cmdline": "/home/cvr/.cursor/extensions/openai.chatgpt-26.409.20454-linux-x64/bin/linux-x86_64/codex app-server --analytics-default-enabled"
+}
