@@ -1,0 +1,27 @@
+manifest:
+  map_id: fixture_map
+  source_fingerprint: fixture:semantic-object-navigation
+  frame_id: map
+  source_rtabmap_db: ""
+  generated_at: "2026-04-27T00:00:00Z"
+  builder_version: fixture_v1
+  detector:
+    name: fixture
+    model: fixture
+
+objects:
+  sofa_1:
+    label: sofa
+    aliases:
+      - 소파
+      - couch
+    frame_id: map
+    x: 2.0
+    y: 3.0
+    z: 0.0
+    yaw_deg: 0.0
+    radius_m: 0.4
+    confidence: 0.9
+    observation_count: 1
+    updated_at: "2026-04-27T00:00:00Z"
+    source: fixture

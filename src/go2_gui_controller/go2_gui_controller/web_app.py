@@ -19,6 +19,8 @@ import uvicorn
 from .commands import CommandType, ParsedCommand
 from .manual_control import ManualControlBridge
 from .navigator_bridge import NavigatorBridge
+from .semantic_goal_resolver import SemanticGoalError, SemanticGoalResolver
+from .semantic_object_registry import SemanticMapValidationError, SemanticObjectRegistry
 from .state_bridge import StateBridge
 from .telemetry_bridge import TelemetryBridge
 from .text_command_parser import TextCommandParser
@@ -40,6 +42,12 @@ MANUAL_SPEEDS = {
     "turn_l": (0.0, 0.0, 1.0),
     "turn_r": (0.0, 0.0, -1.0),
 }
+
+
+def _coerce_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
 
 
 class ManualCommandRequest(BaseModel):
@@ -78,10 +86,15 @@ class WebControllerNode(Node):
     VOICE_JOG_SEC = 0.8
     VOICE_FINE_JOG_SEC = 0.4
 
-    def __init__(self, default_waypoint_file: Path):
+    def __init__(self, default_waypoint_file: Path, default_semantic_object_file: Path):
         super().__init__("go2_web_controller")
         self.declare_parameter("mode", "sim")
         self.declare_parameter("waypoint_file", "")
+        self.declare_parameter("semantic_object_file", "")
+        self.declare_parameter("semantic_map_id", "")
+        self.declare_parameter("semantic_source_fingerprint", "")
+        self.declare_parameter("semantic_manifest_policy", "strict")
+        self.declare_parameter("semantic_manifest_override", False)
         self._declare_or_set_parameter("host", "127.0.0.1")
         self._declare_or_set_parameter("port", 8080)
 
@@ -92,6 +105,12 @@ class WebControllerNode(Node):
 
         waypoint_file_param = str(self.get_parameter("waypoint_file").value or "").strip()
         waypoint_file = Path(waypoint_file_param) if waypoint_file_param else default_waypoint_file
+        semantic_file_param = str(self.get_parameter("semantic_object_file").value or "").strip()
+        semantic_object_file = Path(semantic_file_param) if semantic_file_param else default_semantic_object_file
+        self.semantic_map_id = str(self.get_parameter("semantic_map_id").value or "").strip()
+        self.semantic_source_fingerprint = str(self.get_parameter("semantic_source_fingerprint").value or "").strip()
+        self.semantic_manifest_policy = str(self.get_parameter("semantic_manifest_policy").value or "strict").strip()
+        self.semantic_manifest_override = _coerce_bool(self.get_parameter("semantic_manifest_override").value)
 
         self._lock = threading.Lock()
         self._logs: list[str] = []
@@ -100,6 +119,8 @@ class WebControllerNode(Node):
         self._running = True
 
         self.waypoint_registry = WaypointRegistry(waypoint_file)
+        self.semantic_registry = SemanticObjectRegistry(semantic_object_file)
+        self.semantic_goal_resolver = SemanticGoalResolver()
         self.state_bridge = StateBridge(self, odom_topic=self.runtime_mode["odom_topic"])
         self.telemetry_bridge = TelemetryBridge(self, odom_topic=self.runtime_mode["odom_topic"])
         self.navigator_bridge = NavigatorBridge(self, self.state_bridge, self.waypoint_registry)
@@ -280,6 +301,31 @@ def execute_parsed_command(
         node._append_log(f"[Control] {source_prefix} navigate_to_waypoint: {command.waypoint_name}")
         return f"navigating to {command.waypoint_name}"
 
+    if command.command_type == CommandType.NAVIGATE_TO_OBJECT and command.object_label:
+        node.semantic_registry.validate_manifest(
+            active_map_id=node.semantic_map_id,
+            active_source_fingerprint=node.semantic_source_fingerprint,
+            policy=node.semantic_manifest_policy,
+            override=node.semantic_manifest_override,
+        )
+        current_pose = None
+        if node.state_bridge.state.frame_id == "map":
+            current_pose = (node.state_bridge.state.x, node.state_bridge.state.y)
+        semantic_object = node.semantic_registry.best_match(command.object_label, current_pose=current_pose)
+        if semantic_object is None:
+            raise ValueError(f"object_not_found:{command.object_label}")
+        goal = node.semantic_goal_resolver.resolve(
+            semantic_object,
+            command.object_relation,
+            current_pose=current_pose,
+        )
+        node.navigator_bridge.go_to_semantic_goal(goal)
+        node._append_log(
+            f"[Control] {source_prefix} navigate_to_object: {semantic_object.object_id} "
+            f"relation={goal.relation} x={goal.x:.2f}, y={goal.y:.2f}"
+        )
+        return f"navigating to object {semantic_object.object_id}"
+
     if command.command_type == CommandType.MOVE_RELATIVE:
         node.navigator_bridge.go_to_relative_pose(command.x_m, command.y_m, 0.0)
         node._append_log(
@@ -352,7 +398,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
             raise HTTPException(status_code=400, detail="waypoint_name is required")
         try:
             node.navigator_bridge.go_to_waypoint(waypoint_name)
-        except (RuntimeError, ValueError) as exc:
+        except (RuntimeError, ValueError, SemanticMapValidationError, SemanticGoalError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         waypoint = node.waypoint_registry.get(waypoint_name)
         if waypoint is not None:
@@ -375,7 +421,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
             raise HTTPException(status_code=400, detail="could not parse command")
         try:
             message = execute_parsed_command(node, command, source_prefix="text_command")
-        except (RuntimeError, ValueError) as exc:
+        except (RuntimeError, ValueError, SemanticMapValidationError, SemanticGoalError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return {"ok": True, "message": message}
 
@@ -515,10 +561,11 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
 def main() -> None:
     share_dir = Path(get_package_share_directory("go2_gui_controller"))
     waypoint_file = share_dir / "config" / "waypoints.yaml"
+    semantic_object_file = share_dir / "config" / "semantic_objects.yaml"
     index_file = share_dir / "web" / "index.html"
 
     rclpy.init()
-    node = WebControllerNode(waypoint_file)
+    node = WebControllerNode(waypoint_file, semantic_object_file)
     node.navigator_bridge.start_wait_until_active()
     spin_thread = threading.Thread(target=_ros_spin_loop, args=(node,), daemon=True)
     spin_thread.start()

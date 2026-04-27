@@ -1,4 +1,9 @@
-# my_slam_env.py
+"""Isaac Lab Go2 SLAM simulation environment."""
+
+import math
+import os
+from pathlib import Path
+
 from isaaclab.utils import configclass
 from isaaclab.terrains import TerrainImporterCfg
 from isaaclab.sensors import CameraCfg, ImuCfg
@@ -11,16 +16,38 @@ from isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg i
 )
 
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_USD_PATH = PROJECT_ROOT / "assets" / "office.usd"
+
+
+def _env_float(name: str, default: float) -> float:
+    value = os.environ.get(name)
+    if value is None or value == "":
+        return default
+    return float(value)
+
+
+def _yaw_to_quat_wxyz(yaw_rad: float) -> tuple[float, float, float, float]:
+    half_yaw = yaw_rad * 0.5
+    return (math.cos(half_yaw), 0.0, 0.0, math.sin(half_yaw))
+
+
 @configclass
 class MySlamEnvCfg(UnitreeGo2RoughEnvCfg):
     def __post_init__(self):
         super().__post_init__()
 
-        # 1. 새로 저장한 SLAM 전용 USD 경로 지정
+        usd_path = os.environ.get("GO2_SLAM_USD_PATH", str(DEFAULT_USD_PATH))
+        spawn_x = _env_float("GO2_SPAWN_X", 0.5)
+        spawn_y = _env_float("GO2_SPAWN_Y", 0.0)
+        spawn_z = _env_float("GO2_SPAWN_Z", 0.4)
+        spawn_yaw = _env_float("GO2_SPAWN_YAW", math.pi)
+
+        # 1. SLAM/semantic-map 테스트용 USD 경로 지정
         self.scene.terrain = TerrainImporterCfg(
             prim_path="/World/ground",
             terrain_type="usd",
-            usd_path="/home/cvr/Desktop/sj/go2_intelligence_framework/assets/slam_env.usd",
+            usd_path=usd_path,
             physics_material=sim_utils.RigidBodyMaterialCfg(
                 friction_combine_mode="multiply",
                 restitution_combine_mode="multiply",
@@ -45,6 +72,26 @@ class MySlamEnvCfg(UnitreeGo2RoughEnvCfg):
         self.episode_length_s = 1.0e9
         if hasattr(self.curriculum, "terrain_levels"):
             self.curriculum.terrain_levels = None
+
+        # Office USD 기준: 리셉션 카운터 전면 중앙에 Go2를 고정 스폰한다.
+        # 필요하면 GO2_SPAWN_X/Y/Z/YAW 환경변수로 로컬 조정한다.
+        self.scene.robot.init_state.pos = (spawn_x, spawn_y, spawn_z)
+        self.scene.robot.init_state.rot = _yaw_to_quat_wxyz(spawn_yaw)
+        self.events.reset_base.params = {
+            "pose_range": {
+                "x": (0.0, 0.0),
+                "y": (0.0, 0.0),
+                "yaw": (0.0, 0.0),
+            },
+            "velocity_range": {
+                "x": (0.0, 0.0),
+                "y": (0.0, 0.0),
+                "z": (0.0, 0.0),
+                "roll": (0.0, 0.0),
+                "pitch": (0.0, 0.0),
+                "yaw": (0.0, 0.0),
+            },
+        }
 
         # Unitree RL Lab 정책 obs space 맞추기 (45-dim)
         # 제거: base_lin_vel(3), height_scan(~187)

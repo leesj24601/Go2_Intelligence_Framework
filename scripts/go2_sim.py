@@ -80,16 +80,18 @@ extensions.enable_extension("isaacsim.ros2.bridge")
 simulation_app.update()
 
 
-class WasdKeyboard(Se2Keyboard):
+class ManualKeyboard(Se2Keyboard):
     def _create_key_bindings(self):
+        # Isaac Sim viewport already uses WASD/QE for camera movement.
+        # Use an IJKL + U/O cluster so robot teleop does not fight the viewport.
         self._INPUT_KEY_MAPPING = {
-            "W": np.asarray([1.0, 0.0, 0.0]) * self.v_x_sensitivity,
-            "S": np.asarray([-1.0, 0.0, 0.0]) * self.v_x_sensitivity,
-            "A": np.asarray([0.0, 1.0, 0.0]) * self.v_y_sensitivity,
-            "D": np.asarray([0.0, -1.0, 0.0]) * self.v_y_sensitivity,
-            "Q": np.asarray([0.0, 0.0, 1.0]) * self.omega_z_sensitivity,
-            "E": np.asarray([0.0, 0.0, -1.0]) * self.omega_z_sensitivity,
-            "K": np.asarray([0.0, 0.0, 0.0]),
+            "I": np.asarray([1.0, 0.0, 0.0]) * self.v_x_sensitivity,
+            "K": np.asarray([-1.0, 0.0, 0.0]) * self.v_x_sensitivity,
+            "J": np.asarray([0.0, 1.0, 0.0]) * self.v_y_sensitivity,
+            "L": np.asarray([0.0, -1.0, 0.0]) * self.v_y_sensitivity,
+            "U": np.asarray([0.0, 0.0, 1.0]) * self.omega_z_sensitivity,
+            "O": np.asarray([0.0, 0.0, -1.0]) * self.omega_z_sensitivity,
+            "P": np.asarray([0.0, 0.0, 0.0]),
         }
 
     def advance(self):
@@ -440,7 +442,7 @@ def main(env_cfg, agent_cfg):
     # 6. Reset & Loop
     obs = env.get_observations()
     dt = env.unwrapped.step_dt
-    keyboard = WasdKeyboard(
+    keyboard = ManualKeyboard(
         Se2KeyboardCfg(
             v_x_sensitivity=1.0, v_y_sensitivity=1.0, omega_z_sensitivity=1.5
         )
@@ -463,14 +465,19 @@ def main(env_cfg, agent_cfg):
 
     while simulation_app.is_running():
         start_time = time.time()
-        vel_cmd = keyboard.advance()  # WASD: 로봇 직접 제어 (기존 그대로)
+        vel_cmd = keyboard.advance()  # IJKL/UO: 로봇 직접 제어
 
 
-        # /cmd_vel 수신값 우선 적용, 없으면 WASD 폴백
+        # 수동 키 입력 중에는 로봇 조작을 우선한다. Nav2/velocity_smoother가
+        # /cmd_vel=0을 계속 발행하면 키보드 폴백이 영원히 막히기 때문이다.
         received = cmd_vel_node.get_latest()
         now = time.time()
         if cmd_term is not None:
-            if received is not None:
+            if torch.any(torch.abs(vel_cmd) > 1.0e-5):
+                cmd_term.vel_command_b[0, 0] = vel_cmd[0]
+                cmd_term.vel_command_b[0, 1] = vel_cmd[1]
+                cmd_term.vel_command_b[0, 2] = vel_cmd[2]
+            elif received is not None:
                 # Nav2 (또는 방향키 테스트) cmd_vel → 로봇 직접 제어
                 cmd_term.vel_command_b[0, 0] = received[0]
                 cmd_term.vel_command_b[0, 1] = received[1]
@@ -479,7 +486,7 @@ def main(env_cfg, agent_cfg):
                     print(f"[CMD_VEL] vx={received[0]:.2f}  vy={received[1]:.2f}  omega={received[2]:.2f}")
                     _last_log_time = now
             else:
-                # cmd_vel 없음 (타임아웃 포함) → WASD 폴백
+                # cmd_vel 없음 (타임아웃 포함) → 수동 키 입력 폴백
                 cmd_term.vel_command_b[0, 0] = vel_cmd[0]
                 cmd_term.vel_command_b[0, 1] = vel_cmd[1]
                 cmd_term.vel_command_b[0, 2] = vel_cmd[2]

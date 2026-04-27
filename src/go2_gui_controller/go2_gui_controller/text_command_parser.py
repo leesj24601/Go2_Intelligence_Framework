@@ -39,6 +39,23 @@ class TextCommandParser:
                 source_text=text,
             )
 
+        object_goal = self._extract_object_goal(simplified)
+        if object_goal is not None:
+            object_label, relation = object_goal
+            waypoint = self._waypoint_registry.get(object_label)
+            if waypoint:
+                return ParsedCommand(
+                    CommandType.NAVIGATE_TO_WAYPOINT,
+                    waypoint_name=waypoint.name,
+                    source_text=text,
+                )
+            return ParsedCommand(
+                CommandType.NAVIGATE_TO_OBJECT,
+                object_label=object_label,
+                object_relation=relation,
+                source_text=text,
+            )
+
         if self._contains_any(
             simplified,
             ("forward", "backward", "left", "right", "앞", "뒤", "왼쪽", "오른쪽", "좌측", "우측", "전진", "후진"),
@@ -113,6 +130,39 @@ class TextCommandParser:
             if candidate.endswith(suffix):
                 candidate = candidate[: -len(suffix)].strip()
         return candidate
+
+    def _extract_object_goal(self, text: str) -> Optional[tuple[str, str]]:
+        if not any(token in text for token in ("go to", "navigate to", "이동", "가", "가줘")):
+            return None
+        candidate = self._extract_waypoint_candidate(text)
+        if not candidate or any(character.isdigit() for character in candidate):
+            return None
+        if candidate in ("앞", "뒤", "왼쪽", "오른쪽", "좌측", "우측", "forward", "backward", "left", "right"):
+            return None
+
+        relation = "near"
+        relation_aliases = {
+            "앞": "front",
+            "앞쪽": "front",
+            "front": "front",
+            "뒤": "back",
+            "뒤쪽": "back",
+            "back": "back",
+            "왼쪽": "left",
+            "좌측": "left",
+            "left": "left",
+            "오른쪽": "right",
+            "우측": "right",
+            "right": "right",
+        }
+        parts = candidate.split()
+        if len(parts) >= 2 and parts[-1] in relation_aliases:
+            relation = relation_aliases[parts[-1]]
+            candidate = " ".join(parts[:-1]).strip()
+
+        if not candidate:
+            return None
+        return candidate, relation
 
     def _simplify_korean(self, text: str) -> str:
         simplified = text

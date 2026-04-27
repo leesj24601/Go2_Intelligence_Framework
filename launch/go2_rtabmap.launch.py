@@ -111,7 +111,7 @@ def generate_launch_description():
         "use_sim_time": use_sim_time,
         "subscribe_imu": True,
         "Rtabmap/DetectionRate": "0.5",
-        "Rtabmap/LoopClosureReextractFeatures": "true",
+        "Rtabmap/LoopClosureReextractFeatures": "false",
         "Reg/Strategy": "0",            # Visual 기반
         "Vis/EstimationType": "2",      # 3D-3D: depth로 양쪽 3D 좌표 추출 후 매칭
                                         # 시뮬(완벽한 depth) + 실 로봇(RealSense) 모두 안정적
@@ -154,7 +154,7 @@ def generate_launch_description():
             "Mem/InitWMWithAllNodes": "false",
             "Rtabmap/DetectionRate": "1.0",   # 424x240 맵 생성 시 처리 간격 축소
             "Kp/MaxFeatures": "1000",         # 저해상도에서 특징점 부족 완화
-            "Rtabmap/LoopThr": "0.20",        # 잘못된 loop closure 수용을 더 보수적으로 제한
+            "Rtabmap/LoopThr": "0.35",        # 반복 구조 오인식은 줄이고 localization 후보는 유지
             "RGBD/ProximityBySpace": "false", # 시뮬(gt odom) 맵 생성 시 근접 제약으로 그래프가 꼬이는 현상 완화
         }],
         remappings=_rtabmap_remappings,
@@ -176,6 +176,9 @@ def generate_launch_description():
             "Rtabmap/DetectionRate": "2.0",         # 0.5 → 2.0Hz (빠른 재탐지)
             "RGBD/LinearUpdate": "0.0",             # 정지 중에도 처리
             "RGBD/AngularUpdate": "0.0",            # 정지 중에도 처리
+            "Vis/MinInliers": "8",                  # localization 재탐지 기준 완화 (반복 구조 오인식은 LoopThr로 제한)
+            "RGBD/OptimizeMaxError": "3.0",
+            "Rtabmap/LoopClosureReextractFeatures": "true",
             "Rtabmap/LoopThr": "0.11",              # 정상 임계값으로 복구 (0.11 = 11%)
             "Kp/MaxFeatures": "1000",               # 특징점 수 2배 (500 → 1000)
         }],
@@ -246,7 +249,7 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "localization_db",
-                default_value="/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_ground_truth.db",
+                default_value="/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_office.db",
                 description="DB path for localization mode (read-only, not overwritten)",
             ),
             robot_state_publisher,

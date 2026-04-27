@@ -21,6 +21,9 @@ class StackSpec:
 
 
 class WebLaunchManager:
+    STACK_TERMINATION_GRACE_SEC = 15.0
+    RVIZ_TERMINATION_GRACE_SEC = 3.0
+
     REQUIRED_LAUNCH_FILES = (
         ("launch", "go2_rtabmap.launch.py"),
         ("launch", "go2_navigation.launch.py"),
@@ -134,8 +137,14 @@ class WebLaunchManager:
             self._states[key] = "stopping"
             self._status_callback(key, "stopping")
             assert process is not None
-            self._terminate_group(process)
-        threading.Timer(3.0, lambda managed_key=key: self._kill_if_needed(managed_key)).start()
+            self._interrupt_group(process)
+        self._log(
+            f"[Runtime] waiting up to {self.STACK_TERMINATION_GRACE_SEC:.0f}s for {self._specs[key].label} stack shutdown"
+        )
+        threading.Timer(
+            self.STACK_TERMINATION_GRACE_SEC,
+            lambda managed_key=key: self._kill_if_needed(managed_key),
+        ).start()
         return True, f"stopping {self._specs[key].label} stack"
 
     def open_rviz(self) -> tuple[bool, str]:
@@ -179,7 +188,7 @@ class WebLaunchManager:
             self._status_callback("rviz", "stopping")
             assert self._rviz_process is not None
             self._terminate_group(self._rviz_process)
-        threading.Timer(3.0, self._kill_rviz_if_needed).start()
+        threading.Timer(self.RVIZ_TERMINATION_GRACE_SEC, self._kill_rviz_if_needed).start()
         return True, "stopping RViz"
 
     def shutdown(self) -> None:
@@ -204,12 +213,12 @@ class WebLaunchManager:
         for process in processes.values():
             if not self._process_alive(process):
                 continue
-            self._terminate_group(process)
+            self._interrupt_group(process)
         for process in processes.values():
             if not self._process_alive(process):
                 continue
             try:
-                process.wait(timeout=1.5)
+                process.wait(timeout=self.STACK_TERMINATION_GRACE_SEC)
             except subprocess.TimeoutExpired:
                 self._kill_group(process)
 
@@ -332,6 +341,14 @@ class WebLaunchManager:
         self._log("[Runtime] force-killing RViz")
         assert process is not None
         self._kill_group(process)
+
+    @staticmethod
+    def _interrupt_group(process: subprocess.Popen[str]) -> None:
+        """프로세스 그룹 전체에 SIGINT — 터미널 Ctrl+C와 같은 종료 경로."""
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGINT)
+        except (ProcessLookupError, PermissionError):
+            pass
 
     @staticmethod
     def _terminate_group(process: subprocess.Popen[str]) -> None:

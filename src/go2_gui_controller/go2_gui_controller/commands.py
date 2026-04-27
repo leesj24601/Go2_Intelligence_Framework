@@ -8,6 +8,7 @@ class CommandType(str, Enum):
     MOVE_RELATIVE = "move_relative"
     ROTATE_RELATIVE = "rotate_relative"
     NAVIGATE_TO_WAYPOINT = "navigate_to_waypoint"
+    NAVIGATE_TO_OBJECT = "navigate_to_object"
     CANCEL_NAVIGATION = "cancel_navigation"
 
 
@@ -18,4 +19,6 @@ class ParsedCommand:
     y_m: float = 0.0
     yaw_deg: float = 0.0
     waypoint_name: Optional[str] = None
+    object_label: Optional[str] = None
+    object_relation: str = "near"
     source_text: str = ""

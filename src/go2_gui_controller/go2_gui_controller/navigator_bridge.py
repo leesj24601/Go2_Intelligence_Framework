@@ -7,6 +7,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose
 from rclpy.action import ActionClient
 
+from .semantic_goal_resolver import SemanticGoal
 from .state_bridge import StateBridge
 from .waypoint_registry import WaypointRegistry
 
@@ -69,6 +70,16 @@ class NavigatorBridge:
         pose.pose.orientation.z = sin(half_yaw)
         pose.pose.orientation.w = cos(half_yaw)
         self._publish_goal_pose(pose, "relative_goal")
+
+    def go_to_semantic_goal(self, goal: SemanticGoal) -> None:
+        pose = PoseStamped()
+        pose.header.frame_id = goal.frame_id
+        pose.pose.position.x = goal.x
+        pose.pose.position.y = goal.y
+        half_yaw = goal.yaw_rad / 2.0
+        pose.pose.orientation.z = sin(half_yaw)
+        pose.pose.orientation.w = cos(half_yaw)
+        self._publish_goal_pose(pose, f"object:{goal.object_id}")
 
     def cancel(self) -> None:
         if not self.server_ready():
