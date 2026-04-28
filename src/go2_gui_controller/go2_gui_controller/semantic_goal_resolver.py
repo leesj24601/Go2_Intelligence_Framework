@@ -92,9 +92,9 @@ class SemanticGoalResolver:
         if semantic_object.approach_yaw_deg is not None:
             return radians(semantic_object.approach_yaw_deg)
         if semantic_object.observer_x is not None and semantic_object.observer_y is not None:
-            return atan2(semantic_object.y - semantic_object.observer_y, semantic_object.x - semantic_object.observer_x)
+            return atan2(semantic_object.observer_y - semantic_object.y, semantic_object.observer_x - semantic_object.x)
         if current_pose is not None:
-            return atan2(semantic_object.y - current_pose[1], semantic_object.x - current_pose[0])
+            return atan2(current_pose[1] - semantic_object.y, current_pose[0] - semantic_object.x)
         return 0.0
 
 

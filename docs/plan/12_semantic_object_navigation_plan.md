@@ -10,29 +10,33 @@ created: 2026-04-27
 
 > Deep-interview + ralplan 결과를 반영한 실행 계획.
 
-## Progress Snapshot - 2026-04-27
+## Progress Snapshot - 2026-04-28
 
 ### 완료
 
-- Web GUI 1차 object navigation 경로 구현
-  - `"소파로 가"` 명령 파싱
+- Web GUI object navigation 경로 구현
+  - `"소파로 가"`, `"노트북으로 가"`, `"벤치로 가"` 같은 일반 객체 명령 파싱
   - semantic object lookup
-  - approach pose 계산
+  - 객체 중심점 대신 approach pose 계산
   - Nav2 goal 전송
   - 객체 없음 실패 처리
-- fixture semantic map 추가
+- semantic map manifest / fail-closed 검증 구현
+  - `map_id`, `source_fingerprint`, `frame_id` 검증
+  - manifest 불일치 시 `semantic_manifest_mismatch`로 goal 전송 차단
+- fixture semantic map 경로에서 Office semantic map 경로로 전환
   - `src/go2_gui_controller/config/semantic_objects.yaml`
-  - `sofa_1` fixture: `map` frame 기준 `(2.0, 3.0)`
-  - `"소파로 가"` fixture goal이 `(3.0, 3.0)`로 전송되는 것 확인
+  - 현재 Office map 기준 74개 객체 생성/연결
+  - aliases: `소파`, `의자`, `모니터`, `식물`, `화분`, `책상`, `테이블`, `냉장고`, `노트북`, `벤치`, `꽃병` 등
 - Web GUI 전용으로 범위 확정
   - Qt/Desktop GUI object navigation은 이번 단계에서 제외
 - command parser 범위 정리
   - 새 환경/새 객체마다 파서를 다시 작성하지 않음
   - detector/semantic map이 label과 alias를 제공하고, parser는 일반 객체 명령 구조만 처리
-- detector 방향 결정
-  - 1차 detector는 YOLO-World로 진행
-  - fallback 후보는 YOLOE
-  - Jetson/online 후보는 NanoOWL/ROS2-NanoOWL로 보류
+- detector 방향 재결정 및 spike 완료
+  - YOLO-World 직접 repo 설치는 의존성/운영 복잡도 때문에 1차 경로에서 제외
+  - 1차 detector는 Ultralytics YOLO detect 모델로 진행
+  - `yolo11n.pt` smoke/full RGB export inference 확인
+  - segmentation은 필요 시 후속으로 전환 검토
 - Isaac Sim Office USD 실험 시작
   - `assets/office.usd` 저장
   - `go2_sim.py` 기본 환경을 Office USD로 전환
@@ -42,6 +46,24 @@ created: 2026-04-27
   - Office 환경에서 RTAB-Map DB 생성 확인
   - 생성한 Office DB로 Nav2 localization 실행 흐름 확인
   - 다음 단계 기준을 Office DB와 semantic object 좌표 정합으로 확정
+- offline semantic map builder 구현
+  - `scripts/build_semantic_map_from_yolo.py`
+  - RTAB-Map export RGB/depth/calibration/camera pose 입력 처리
+  - Ultralytics YOLO txt label 입력 처리
+  - depth median 기반 bbox 중심 3D projection
+  - camera pose를 이용한 `map` frame object coordinate 생성
+  - label별 greedy XY merge
+  - manifest 포함 `semantic_objects.yaml` 생성
+- RTAB-Map Office DB export / YOLO inference / semantic map 생성 흐름 확인
+  - `rtabmap-export --images_id --poses_camera ... maps/rtabmap_office.db`
+  - `yolo predict model=yolo11n.pt ... save_txt=True save_conf=True`
+  - generated Office semantic map을 Web GUI config로 연결
+- semantic approach pose 방향 수정
+  - 객체 좌표 자체가 아니라 객체를 관측했던 위치 방향의 접근점으로 이동
+  - 예: `laptop_1 object=(7.8393,1.2171)`, `observer=(6.0504,2.6206)`, `goal=(7.0525,1.8344)`
+- Web GUI runtime cleanup 추가
+  - Runtime 탭 `Kill All`
+  - `rtabmap_slam`, `nav2_`, `robot_state_publisher`, `rviz2` 일괄 정리
 
 ### 검증 완료
 
@@ -50,6 +72,8 @@ python3 -m unittest src/go2_gui_controller/test/test_semantic_navigation.py
 python3 -m unittest discover -s src/go2_gui_controller/test
 python3 -m compileall src/go2_gui_controller/go2_gui_controller
 python3 -m compileall src/go2_gui_controller/launch src/go2_gui_controller/setup.py
+python3 -m compileall scripts/build_semantic_map_from_yolo.py
+python3 -m compileall launch/go2_rtabmap.launch.py
 colcon build --packages-select go2_gui_controller
 python3 -m compileall scripts/go2_sim.py scripts/my_slam_env.py
 ```
@@ -62,9 +86,16 @@ python3 -m compileall scripts/go2_sim.py scripts/my_slam_env.py
 - 다음 단계 전에 Office USD에서 사용할 테스트 구역을 정해야 한다.
   - 1차 semantic map 테스트는 리셉션/소파/의자/모니터/식물 같은 평면 구역 객체 중심으로 진행한다.
   - 계단/복층 이동은 별도 계획 또는 별도 USD collision 정리 후 진행한다.
-- 아직 offline semantic map builder는 구현 전이다.
-  - 현재 object navigation은 fixture YAML 기반이다.
-  - 다음 구현 단위는 YOLO-World detection 결과를 semantic map YAML로 만드는 builder다.
+- 현재 semantic navigation은 Nav2 planning 실패 시 다른 후보로 자동 fallback하지 않는다.
+  - 예: `"벤치로 가"`는 confidence가 높은 `bench_1`을 선택했으나, goal `(-2.27, 9.95)`에 대해 Nav2 planner가 경로 생성 실패했다.
+  - 다음 구현 단위는 같은 label의 다른 객체 후보 또는 다른 approach pose를 자동 재시도하는 fallback이다.
+- approach pose가 실제 free space인지 아직 Nav2 costmap으로 사전검사하지 않는다.
+  - 현재 validator는 frame/finite/distance/object radius margin만 확인한다.
+  - costmap 기반 goal validation은 후속 단계로 남아 있다.
+- semantic object 품질은 detector confidence와 관측 수에 따라 편차가 있다.
+  - `observation_count=1` 객체는 실제 navigation 목표로 쓰기 전에 추가 검증이 필요하다.
+- 문서의 Detector 결정 섹션은 초기 계획 기록으로 남긴다.
+  - 실제 1차 구현은 YOLO-World가 아니라 Ultralytics YOLO detect 경로다.
 
 ---
 
@@ -314,7 +345,20 @@ Nav2로 보내기 전 최소 검증을 수행한다.
 
 ## Detector 결정
 
-1차 offline semantic map builder의 primary detector는 **YOLO-World**로 정한다.
+초기 계획에서는 1차 offline semantic map builder의 primary detector를 **YOLO-World**로 정했다.
+실제 구현 중 YOLO-World 직접 repo 설치가 `mmyolo`/OpenMMLab 의존성에서 부담이 커졌고,
+이번 프로젝트의 1차 요구가 open-vocabulary prompt 실험보다
+Office DB의 고정 객체 map 생성에 가까워졌기 때문에
+현재 구현은 **Ultralytics YOLO detect (`yolo11n.pt`)** 경로로 전환했다.
+
+현재 1차 구현 상태:
+
+- `conda`의 `yolo` 환경에 Ultralytics 설치
+- RTAB-Map RGB export에 대해 `yolo predict ... save_txt=True save_conf=True` 실행
+- `scripts/build_semantic_map_from_yolo.py`가 Ultralytics txt label을 소비
+- generated `semantic_objects.yaml`을 Web GUI config로 연결
+
+아래 YOLO-World 내용은 초기 detector 검토 기록으로 남긴다.
 
 선정 이유:
 

@@ -555,6 +555,15 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
             raise HTTPException(status_code=400, detail=message)
         return {"ok": True, "message": message}
 
+    @app.post("/stack/force-cleanup")
+    async def stack_force_cleanup() -> dict:
+        node.navigator_bridge.cancel()
+        node.manual_bridge.stop()
+        ok, message = await run_in_threadpool(node.launch_manager.force_cleanup_runtime)
+        if not ok:
+            raise HTTPException(status_code=500, detail=message)
+        return {"ok": True, "message": message}
+
     return app
 
 

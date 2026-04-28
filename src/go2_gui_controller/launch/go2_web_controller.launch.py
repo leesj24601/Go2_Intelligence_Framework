@@ -32,12 +32,12 @@ def generate_launch_description():
             ),
             DeclareLaunchArgument(
                 "semantic_map_id",
-                default_value="",
+                default_value="rtabmap_office",
                 description="Semantic map id expected by the semantic object manifest.",
             ),
             DeclareLaunchArgument(
                 "semantic_source_fingerprint",
-                default_value="",
+                default_value="sha256:a4d9012d6164fbd158e1c150b2b4a7fc3e18757563360929425aa1cdcd3d7c1c",
                 description="Source fingerprint expected by the semantic object manifest.",
             ),
             DeclareLaunchArgument(

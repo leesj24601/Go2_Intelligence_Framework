@@ -1,27 +1,1265 @@
 manifest:
-  map_id: fixture_map
-  source_fingerprint: fixture:semantic-object-navigation
+  map_id: rtabmap_office
+  source_fingerprint: sha256:a4d9012d6164fbd158e1c150b2b4a7fc3e18757563360929425aa1cdcd3d7c1c
   frame_id: map
-  source_rtabmap_db: ""
-  generated_at: "2026-04-27T00:00:00Z"
-  builder_version: fixture_v1
+  source_rtabmap_db: maps/rtabmap_office.db
+  generated_at: '2026-04-28T04:22:49Z'
+  builder_version: offline_yolo_builder_v1
   detector:
-    name: fixture
-    model: fixture
-
+    name: ultralytics-yolo
+    model: yolo11n.pt
 objects:
-  sofa_1:
-    label: sofa
+  bench_1:
+    label: bench
     aliases:
-      - 소파
-      - couch
+    - 벤치
     frame_id: map
-    x: 2.0
-    y: 3.0
-    z: 0.0
-    yaw_deg: 0.0
-    radius_m: 0.4
-    confidence: 0.9
+    x: -3.2555
+    y: 9.8061
+    z: -0.2021
+    yaw_deg: null
+    radius_m: 0.796
+    confidence: 0.8612
+    observation_count: 10
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 1.3353
+    observer_y: 10.487
+  bench_2:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: -1.1185
+    y: -11.0619
+    z: -0.3509
+    yaw_deg: null
+    radius_m: 0.518
+    confidence: 0.7653
+    observation_count: 4
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.7574
+    observer_y: -7.8096
+  bench_3:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 8.9196
+    y: -11.0111
+    z: -0.315
+    yaw_deg: null
+    radius_m: 0.689
+    confidence: 0.7474
+    observation_count: 5
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 7.2941
+    observer_y: -7.0682
+  bench_4:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 11.7229
+    y: -10.9366
+    z: -0.202
+    yaw_deg: null
+    radius_m: 0.586
+    confidence: 0.6937
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 13.5684
+    observer_y: -9.172
+  bench_5:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 7.6021
+    y: 3.7307
+    z: -0.2935
+    yaw_deg: null
+    radius_m: 0.461
+    confidence: 0.6878
+    observation_count: 4
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 12.2382
+    observer_y: 8.9357
+  bench_6:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 10.0548
+    y: -11.0085
+    z: -0.2961
+    yaw_deg: null
+    radius_m: 0.482
+    confidence: 0.6633
+    observation_count: 3
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 9.473
+    observer_y: -6.4454
+  bench_7:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 2.1377
+    y: 8.7356
+    z: -0.3139
+    yaw_deg: null
+    radius_m: 0.891
+    confidence: 0.6623
+    observation_count: 7
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.6368
+    observer_y: 4.4245
+  bench_8:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 6.8759
+    y: -4.2446
+    z: 0.0475
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.6302
     observation_count: 1
-    updated_at: "2026-04-27T00:00:00Z"
-    source: fixture
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 14.03
+    observer_y: -7.9327
+  bench_9:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 5.4807
+    y: 9.5786
+    z: -0.3131
+    yaw_deg: null
+    radius_m: 0.857
+    confidence: 0.6211
+    observation_count: 6
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.3567
+    observer_y: 7.6953
+  bench_10:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 3.1353
+    y: -3.8636
+    z: -0.1458
+    yaw_deg: null
+    radius_m: 0.552
+    confidence: 0.58
+    observation_count: 4
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -0.7055
+    observer_y: -7.9707
+  bench_11:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 3.0817
+    y: 8.8032
+    z: -0.3645
+    yaw_deg: null
+    radius_m: 0.527
+    confidence: 0.5616
+    observation_count: 7
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 5.5147
+    observer_y: 5.7401
+  bench_12:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: -2.0802
+    y: -10.9984
+    z: -0.2815
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.5512
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -0.4591
+    observer_y: -9.6746
+  bench_13:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 7.5679
+    y: -3.7036
+    z: -0.058
+    yaw_deg: null
+    radius_m: 0.331
+    confidence: 0.525
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 13.4048
+    observer_y: -8.5212
+  bench_14:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 1.1439
+    y: 6.7946
+    z: -0.0728
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.5045
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.7861
+    observer_y: 7.2473
+  bench_15:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 8.1003
+    y: -10.8845
+    z: -0.4283
+    yaw_deg: null
+    radius_m: 0.354
+    confidence: 0.4937
+    observation_count: 3
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.5196
+    observer_y: -6.4729
+  bench_16:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 5.2637
+    y: 8.6746
+    z: -0.218
+    yaw_deg: null
+    radius_m: 0.656
+    confidence: 0.4836
+    observation_count: 4
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.9909
+    observer_y: 2.3149
+  bench_17:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: -2.754
+    y: 5.9796
+    z: -0.0716
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3869
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -2.7543
+    observer_y: 1.724
+  bench_18:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 8.1083
+    y: -2.8807
+    z: -0.0677
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3335
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 14.6366
+    observer_y: -7.8224
+  bench_19:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 2.8841
+    y: 10.6535
+    z: -0.1384
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3176
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.2366
+    observer_y: 11.4572
+  bench_20:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: -2.3278
+    y: 6.7258
+    z: -0.3096
+    yaw_deg: null
+    radius_m: 0.486
+    confidence: 0.3157
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -0.1354
+    observer_y: 10.8785
+  bench_21:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 5.9025
+    y: 8.8434
+    z: -0.3656
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2845
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 9.4109
+    observer_y: 2.7286
+  bench_22:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: -2.8484
+    y: -10.9309
+    z: -0.2965
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2806
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 0.463
+    observer_y: -9.4303
+  bench_23:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 3.3079
+    y: 3.9868
+    z: 0.0149
+    yaw_deg: null
+    radius_m: 0.462
+    confidence: 0.2595
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 1.0132
+    observer_y: 8.551
+  bench_24:
+    label: bench
+    aliases:
+    - 벤치
+    frame_id: map
+    x: 0.2528
+    y: -10.9334
+    z: -0.1709
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2563
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 5.0796
+    observer_y: -4.7299
+  chair_1:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: 2.1168
+    y: 8.6696
+    z: -0.3043
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.6609
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 10.0824
+    observer_y: 2.184
+  chair_2:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: 4.6388
+    y: 4.3423
+    z: -0.2615
+    yaw_deg: null
+    radius_m: 0.635
+    confidence: 0.5818
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.5679
+    observer_y: 1.4154
+  chair_3:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: -2.6812
+    y: 5.9885
+    z: -0.0415
+    yaw_deg: null
+    radius_m: 0.325
+    confidence: 0.5487
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -1.6839
+    observer_y: 0.1795
+  chair_4:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: 1.1597
+    y: 6.4592
+    z: -0.5225
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.5387
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 10.2348
+    observer_y: 6.8592
+  chair_5:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: -3.1691
+    y: 10.3905
+    z: -0.8014
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3911
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.0511
+    observer_y: 11.1064
+  chair_6:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: 2.8821
+    y: 10.6539
+    z: -0.1168
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3434
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.2366
+    observer_y: 11.4572
+  chair_7:
+    label: chair
+    aliases:
+    - 의자
+    frame_id: map
+    x: 4.3925
+    y: -3.9554
+    z: -0.3656
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2884
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 12.6089
+    observer_y: -8.9727
+  couch_1:
+    label: couch
+    aliases:
+    - 소파
+    - sofa
+    frame_id: map
+    x: 1.1429
+    y: 6.7949
+    z: -0.0736
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.6915
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.7861
+    observer_y: 7.2473
+  couch_2:
+    label: couch
+    aliases:
+    - 소파
+    - sofa
+    frame_id: map
+    x: 3.4053
+    y: 10.6214
+    z: -0.2832
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.642
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.0511
+    observer_y: 11.1064
+  dining_table_1:
+    label: dining table
+    aliases:
+    - 테이블
+    - 책상
+    - table
+    - desk
+    frame_id: map
+    x: 11.1716
+    y: 12.8564
+    z: -0.5077
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.4128
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 10.6426
+    observer_y: 10.7107
+  dining_table_2:
+    label: dining table
+    aliases:
+    - 테이블
+    - 책상
+    - table
+    - desk
+    frame_id: map
+    x: 13.4709
+    y: 11.2849
+    z: -0.4802
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3144
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 11.4145
+    observer_y: 10.9624
+  laptop_1:
+    label: laptop
+    aliases:
+    - 노트북
+    frame_id: map
+    x: 7.8393
+    y: 1.2171
+    z: 0.5809
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.4904
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.0504
+    observer_y: 2.6206
+  potted_plant_1:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -3.4174
+    y: -5.3078
+    z: 0.1374
+    yaw_deg: null
+    radius_m: 0.663
+    confidence: 0.9264
+    observation_count: 10
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -1.0287
+    observer_y: -2.1542
+  potted_plant_2:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 6.6245
+    y: -11.6811
+    z: 0.1354
+    yaw_deg: null
+    radius_m: 0.834
+    confidence: 0.8936
+    observation_count: 12
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.996
+    observer_y: -5.5307
+  potted_plant_3:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -3.4399
+    y: 5.5251
+    z: 0.2581
+    yaw_deg: null
+    radius_m: 0.673
+    confidence: 0.8785
+    observation_count: 10
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -0.4042
+    observer_y: 3.9933
+  potted_plant_4:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 2.6155
+    y: 11.2485
+    z: 0.1899
+    yaw_deg: null
+    radius_m: 0.475
+    confidence: 0.8413
+    observation_count: 6
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 5.2863
+    observer_y: 10.2741
+  potted_plant_5:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 0.9333
+    y: 11.6389
+    z: -0.043
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.829
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.8007
+    observer_y: 10.6308
+  potted_plant_6:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 0.9058
+    y: -11.6689
+    z: 0.1626
+    yaw_deg: null
+    radius_m: 0.946
+    confidence: 0.828
+    observation_count: 12
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.2329
+    observer_y: -4.9409
+  potted_plant_7:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -4.9123
+    y: -10.9805
+    z: 0.5919
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.7588
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -2.2521
+    observer_y: -1.8499
+  potted_plant_8:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 6.1191
+    y: -10.9299
+    z: 0.0444
+    yaw_deg: null
+    radius_m: 0.386
+    confidence: 0.7564
+    observation_count: 7
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 9.6728
+    observer_y: -6.4984
+  potted_plant_9:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 1.2389
+    y: -10.7996
+    z: -0.2238
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.7212
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.566
+    observer_y: -2.3167
+  potted_plant_10:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -3.6427
+    y: 11.1862
+    z: 0.1709
+    yaw_deg: null
+    radius_m: 0.409
+    confidence: 0.7114
+    observation_count: 6
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 0.8785
+    observer_y: 11.1718
+  potted_plant_11:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 3.9836
+    y: 11.482
+    z: 0.0902
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.702
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -1.1198
+    observer_y: 10.4926
+  potted_plant_12:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 7.4741
+    y: -11.469
+    z: 0.2853
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.5864
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.4258
+    observer_y: -9.8258
+  potted_plant_13:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -4.6817
+    y: 4.999
+    z: 0.4613
+    yaw_deg: null
+    radius_m: 0.359
+    confidence: 0.5398
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.2607
+    observer_y: 5.6579
+  potted_plant_14:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -4.4258
+    y: -7.6909
+    z: 0.2744
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.468
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -2.8641
+    observer_y: -2.6052
+  potted_plant_15:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 5.1692
+    y: 1.4597
+    z: 0.7241
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.4536
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.6644
+    observer_y: -2.1926
+  potted_plant_16:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 5.4124
+    y: -1.4417
+    z: 0.8989
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.4372
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.6859
+    observer_y: 1.7657
+  potted_plant_17:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 3.3864
+    y: 10.1878
+    z: -0.2694
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.4148
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 9.4109
+    observer_y: 2.7286
+  potted_plant_18:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -4.5051
+    y: 11.6899
+    z: 0.3302
+    yaw_deg: null
+    radius_m: 0.326
+    confidence: 0.3962
+    observation_count: 2
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 1.794
+    observer_y: 7.4974
+  potted_plant_19:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 5.9143
+    y: 9.8029
+    z: -0.2621
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3736
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 13.7202
+    observer_y: 6.4455
+  potted_plant_20:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -2.7821
+    y: 6.1795
+    z: 0.1456
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2945
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -0.7724
+    observer_y: 8.3566
+  potted_plant_21:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: 5.2416
+    y: -0.3728
+    z: 0.8129
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2823
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.0397
+    observer_y: 2.7247
+  potted_plant_22:
+    label: potted plant
+    aliases:
+    - 화분
+    - 식물
+    - plant
+    frame_id: map
+    x: -0.5116
+    y: 10.7736
+    z: 0.1167
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2601
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.2007
+    observer_y: 11.2026
+  refrigerator_1:
+    label: refrigerator
+    aliases:
+    - 냉장고
+    frame_id: map
+    x: 7.5279
+    y: 1.6117
+    z: -0.1129
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.6409
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.7321
+    observer_y: 0.3865
+  refrigerator_2:
+    label: refrigerator
+    aliases:
+    - 냉장고
+    frame_id: map
+    x: 2.6597
+    y: 11.2336
+    z: -0.107
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3368
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.5761
+    observer_y: 11.3118
+  tv_1:
+    label: tv
+    aliases:
+    - 티비
+    - 텔레비전
+    - 모니터
+    - monitor
+    frame_id: map
+    x: 15.5164
+    y: 1.5373
+    z: 0.2145
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.6517
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 12.9211
+    observer_y: 2.7353
+  tv_2:
+    label: tv
+    aliases:
+    - 티비
+    - 텔레비전
+    - 모니터
+    - monitor
+    frame_id: map
+    x: -3.1868
+    y: 10.0636
+    z: -0.3415
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.5325
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -0.0249
+    observer_y: 11.1219
+  tv_3:
+    label: tv
+    aliases:
+    - 티비
+    - 텔레비전
+    - 모니터
+    - monitor
+    frame_id: map
+    x: 15.535
+    y: 4.4767
+    z: 0.5856
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3187
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 10.2088
+    observer_y: 4.1166
+  tv_4:
+    label: tv
+    aliases:
+    - 티비
+    - 텔레비전
+    - 모니터
+    - monitor
+    frame_id: map
+    x: 7.7783
+    y: 1.4292
+    z: 0.5337
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3055
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 5.0802
+    observer_y: 2.7549
+  tv_5:
+    label: tv
+    aliases:
+    - 티비
+    - 텔레비전
+    - 모니터
+    - monitor
+    frame_id: map
+    x: 7.7542
+    y: -1.627
+    z: 0.6076
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2963
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.8614
+    observer_y: -2.4384
+  tv_6:
+    label: tv
+    aliases:
+    - 티비
+    - 텔레비전
+    - 모니터
+    - monitor
+    frame_id: map
+    x: 5.5275
+    y: -2.1706
+    z: -0.257
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.2551
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.8614
+    observer_y: -2.4384
+  vase_1:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: 6.0671
+    y: -10.8306
+    z: -0.3182
+    yaw_deg: null
+    radius_m: 0.408
+    confidence: 0.8666
+    observation_count: 10
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 4.7868
+    observer_y: -6.5555
+  vase_2:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: -3.617
+    y: 11.1484
+    z: -0.3814
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.8056
+    observation_count: 7
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 0.8087
+    observer_y: 11.2084
+  vase_3:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: 1.1577
+    y: -11.0137
+    z: -0.2498
+    yaw_deg: null
+    radius_m: 0.337
+    confidence: 0.7582
+    observation_count: 7
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 2.8078
+    observer_y: -6.3824
+  vase_4:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: -3.3714
+    y: -5.1902
+    z: -0.445
+    yaw_deg: null
+    radius_m: 0.509
+    confidence: 0.7347
+    observation_count: 6
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: -1.2374
+    observer_y: -2.7985
+  vase_5:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: 2.6069
+    y: 11.2455
+    z: -0.3774
+    yaw_deg: null
+    radius_m: 0.437
+    confidence: 0.718
+    observation_count: 5
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.923
+    observer_y: 10.9261
+  vase_6:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: -3.3464
+    y: 5.3047
+    z: -0.2425
+    yaw_deg: null
+    radius_m: 0.365
+    confidence: 0.6734
+    observation_count: 6
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 0.5946
+    observer_y: 3.8889
+  vase_7:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: 4.8815
+    y: 0.7778
+    z: 0.3173
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.4434
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 3.6644
+    observer_y: -2.1926
+  vase_8:
+    label: vase
+    aliases:
+    - 꽃병
+    frame_id: map
+    x: 5.6787
+    y: -0.8692
+    z: 0.4706
+    yaw_deg: null
+    radius_m: 0.3
+    confidence: 0.3684
+    observation_count: 1
+    updated_at: '2026-04-28T04:22:49Z'
+    source: offline_yolo_builder
+    observer_x: 6.6859
+    observer_y: 1.7657

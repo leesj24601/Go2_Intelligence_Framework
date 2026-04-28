@@ -23,6 +23,12 @@ class StackSpec:
 class WebLaunchManager:
     STACK_TERMINATION_GRACE_SEC = 15.0
     RVIZ_TERMINATION_GRACE_SEC = 3.0
+    FORCE_CLEANUP_PATTERNS = (
+        "rtabmap_slam",
+        "nav2_",
+        "robot_state_publisher",
+        "rviz2",
+    )
 
     REQUIRED_LAUNCH_FILES = (
         ("launch", "go2_rtabmap.launch.py"),
@@ -190,6 +196,56 @@ class WebLaunchManager:
             self._terminate_group(self._rviz_process)
         threading.Timer(self.RVIZ_TERMINATION_GRACE_SEC, self._kill_rviz_if_needed).start()
         return True, "stopping RViz"
+
+    def force_cleanup_runtime(self) -> tuple[bool, str]:
+        if not self.available:
+            return False, self._unavailable_reason
+
+        with self._lock:
+            self._pending_start_key = None
+            known_processes = [process for process in self._processes.values() if self._process_alive(process)]
+            rviz_process = self._rviz_process if self._process_alive(self._rviz_process) else None
+            for key in self._specs:
+                self._stop_requested[key] = True
+                self._states[key] = "stopped"
+                self._status_callback(key, "stopped")
+            self._rviz_stop_requested = True
+            self._rviz_state = "stopped"
+            self._status_callback("rviz", "stopped")
+
+        for process in known_processes:
+            assert process is not None
+            self._interrupt_group(process)
+        if rviz_process is not None:
+            self._terminate_group(rviz_process)
+
+        killed_patterns: list[str] = []
+        missing_patterns: list[str] = []
+        failed_patterns: list[str] = []
+        for pattern in self.FORCE_CLEANUP_PATTERNS:
+            result = subprocess.run(
+                ["pkill", "-f", pattern],
+                capture_output=True,
+                text=True,
+                timeout=3.0,
+                check=False,
+            )
+            if result.returncode == 0:
+                killed_patterns.append(pattern)
+            elif result.returncode == 1:
+                missing_patterns.append(pattern)
+            else:
+                failed_patterns.append(pattern)
+                stderr = result.stderr.strip()
+                self._log(f"[Runtime] force cleanup failed for {pattern}: {stderr or result.returncode}")
+
+        self._log(
+            "[Runtime] force cleanup requested "
+            f"(killed={killed_patterns or '-'}, already_stopped={missing_patterns or '-'})"
+        )
+        if failed_patterns:
+            return False, f"force cleanup failed for: {', '.join(failed_patterns)}"
+        return True, "force cleanup sent"
 
     def shutdown(self) -> None:
         if not self.available:

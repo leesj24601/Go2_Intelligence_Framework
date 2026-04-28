@@ -21,6 +21,7 @@ class NavigatorBridge:
         self._current_goal_handle = None
         self._current_goal_label: str | None = None
         self._pending_goal_label: str | None = None
+        self._cancel_pending_goal = False
 
     def start_wait_until_active(self) -> None:
         if not self.server_ready():
@@ -41,6 +42,7 @@ class NavigatorBridge:
         goal = NavigateToPose.Goal()
         goal.pose = pose
 
+        self._cancel_pending_goal = False
         self._pending_goal_label = label
         self._state_bridge.set_nav_status(f"sending_goal:{label}")
         send_future = self._navigate_client.send_goal_async(goal, feedback_callback=self._on_feedback)
@@ -87,6 +89,10 @@ class NavigatorBridge:
             return
 
         if self._current_goal_handle is None:
+            if self._pending_goal_label is not None:
+                self._cancel_pending_goal = True
+                self._state_bridge.set_nav_status("cancel_requested")
+                return
             if self.localization_ready():
                 self._state_bridge.set_nav_status("ready")
             else:
@@ -141,6 +147,13 @@ class NavigatorBridge:
 
         self._current_goal_handle = goal_handle
         self._current_goal_label = label
+        if self._cancel_pending_goal:
+            self._cancel_pending_goal = False
+            goal_handle.cancel_goal_async()
+            self._state_bridge.set_nav_status("cancel_requested")
+            result_future = goal_handle.get_result_async()
+            result_future.add_done_callback(self._on_goal_result)
+            return
         self._state_bridge.set_nav_status(f"navigating:{label}")
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self._on_goal_result)
@@ -183,3 +196,4 @@ class NavigatorBridge:
         self._current_goal_handle = None
         self._current_goal_label = None
         self._pending_goal_label = None
+        self._cancel_pending_goal = False

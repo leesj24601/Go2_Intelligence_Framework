@@ -176,10 +176,12 @@ def generate_launch_description():
             "Rtabmap/DetectionRate": "2.0",         # 0.5 → 2.0Hz (빠른 재탐지)
             "RGBD/LinearUpdate": "0.0",             # 정지 중에도 처리
             "RGBD/AngularUpdate": "0.0",            # 정지 중에도 처리
-            "Vis/MinInliers": "8",                  # localization 재탐지 기준 완화 (반복 구조 오인식은 LoopThr로 제한)
+            "Vis/MinInliers": "15",                 # localization 재탐지 기준. 반복 구조 오인식을 줄이기 위해 8에서 복구
+            "Vis/MinInliersDistribution": "0.0",    # 특징 적은 복도/벽면에서 초기 localization이 막히지 않도록 분포 조건 비활성화
             "RGBD/OptimizeMaxError": "3.0",
             "Rtabmap/LoopClosureReextractFeatures": "true",
-            "Rtabmap/LoopThr": "0.11",              # 정상 임계값으로 복구 (0.11 = 11%)
+            "Rtabmap/LoopThr": "0.11",              # 기본 localization 후보 수락 기준
+            "RGBD/AggressiveLoopThr": "0.08",       # 초기 위치 획득은 허용하되 기본값(0.05)보다는 약간 보수화
             "Kp/MaxFeatures": "1000",               # 특징점 수 2배 (500 → 1000)
         }],
         remappings=_rtabmap_remappings,

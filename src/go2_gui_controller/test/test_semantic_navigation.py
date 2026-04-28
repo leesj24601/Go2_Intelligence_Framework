@@ -69,10 +69,11 @@ objects:
     frame_id: map
     x: 2.0
     y: 3.0
-    yaw_deg: 0.0
     radius_m: 0.4
     confidence: 0.9
     updated_at: "2026-04-27T00:00:00Z"
+    observer_x: 1.0
+    observer_y: 3.0
 """
 
 
@@ -108,10 +109,10 @@ class SemanticGoalResolverTests(unittest.TestCase):
         left = self.resolver.resolve(self.obj, "left")
         right = self.resolver.resolve(self.obj, "right")
 
-        self.assertEqual((round(front.x, 2), round(front.y, 2)), (3.0, 3.0))
-        self.assertEqual((round(back.x, 2), round(back.y, 2)), (1.0, 3.0))
-        self.assertEqual((round(left.x, 2), round(left.y, 2)), (2.0, 4.0))
-        self.assertEqual((round(right.x, 2), round(right.y, 2)), (2.0, 2.0))
+        self.assertEqual((round(front.x, 2), round(front.y, 2)), (1.0, 3.0))
+        self.assertEqual((round(back.x, 2), round(back.y, 2)), (3.0, 3.0))
+        self.assertEqual((round(left.x, 2), round(left.y, 2)), (2.0, 2.0))
+        self.assertEqual((round(right.x, 2), round(right.y, 2)), (2.0, 4.0))
 
     def test_invalid_approach_distance_is_blocked(self):
         resolver = SemanticGoalResolver(approach_distance_m=0.2)
