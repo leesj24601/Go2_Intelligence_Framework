@@ -13,5 +13,20 @@ log_merge/
 # 시뮬레이션 결과물 폴더 무시
 outputs/
 
+# offline semantic map / detector generated artifacts
+exports/
+runs/
+yolo*.pt
+
 # rtabmap database
 maps
+
+# local agent/session state
+.omx/
+.omc/
+.claude/
+.obsidian/
+.mcp_guide.md
+
+# tool caches
+.ruff_cache/
