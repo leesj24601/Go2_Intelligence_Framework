@@ -8,7 +8,7 @@ created: 2026-04-27
 
 # 12. Semantic Object Navigation Plan
 
-> Deep-interview + ralplan 결과를 반영한 실행 계획.
+> Deep-interview + ralplan 결과를 반영한 실행 계획
 
 ## Progress Snapshot - 2026-04-28
 
