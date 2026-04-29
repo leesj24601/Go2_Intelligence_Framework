@@ -360,12 +360,27 @@ rviz2 -d config/go2_sim.rviz
 
 ### 4. GUI Controller / Mission Control
 
-#### 🎥 Demonstration Video
+#### 🎥 Demonstration
 <div align="center">
-  <a href="https://youtu.be/42z0Bue8SZ8">
-    <img src="https://img.youtube.com/vi/42z0Bue8SZ8/0.jpg" alt="Complete Mission Control Dashboard & Autonomous Navigation" width="600">
-  </a>
-  <p><i>Click the image to watch the Complete Mission Control Dashboard & Autonomous Navigation demonstration.</i></p>
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <a href="https://youtu.be/42z0Bue8SZ8">
+          <img src="https://img.youtube.com/vi/42z0Bue8SZ8/0.jpg" alt="Qt GUI Mission Control Dashboard & Autonomous Navigation" width="100%">
+        </a>
+        <br>
+        <b>Qt GUI Controller</b>
+      </td>
+      <td align="center" width="50%">
+        <a href="docs/assets/HTML%20Web%20GUI.png">
+          <img src="docs/assets/HTML%20Web%20GUI.png" alt="HTML Web GUI Mission Control Dashboard" width="100%">
+        </a>
+        <br>
+        <b>HTML Web GUI Controller</b>
+      </td>
+    </tr>
+  </table>
+  <p><i>Click the Qt GUI image to watch the Complete Mission Control Dashboard & Autonomous Navigation demonstration.</i></p>
 </div>
 
 #### 🎮 Mission Control Interface
