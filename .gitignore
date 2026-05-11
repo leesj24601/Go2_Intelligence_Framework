@@ -24,8 +24,6 @@ maps
 # local agent/session state
 .omx/
 .omc/
-.claude/
-.obsidian/
 .mcp_guide.md
 
 # tool caches
