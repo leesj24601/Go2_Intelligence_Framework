@@ -50,6 +50,7 @@ class SemanticMapBuilderTests(unittest.TestCase):
             data = yaml.safe_load(output.read_text())
             self.assertEqual(data["manifest"]["map_id"], "office")
             self.assertEqual(data["manifest"]["frame_id"], "map")
+            self.assertEqual(data["manifest"]["detector"]["model"], "models/yolo11n.pt")
             self.assertIn("chair_1", data["objects"])
 
             chair = data["objects"]["chair_1"]

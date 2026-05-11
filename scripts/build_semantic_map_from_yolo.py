@@ -193,7 +193,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--map-id", default="", help="Manifest map_id. Defaults to source DB stem.")
     parser.add_argument("--source-fingerprint", default="", help="Manifest source fingerprint. Defaults to sha256 of source DB.")
     parser.add_argument("--detector-name", default="ultralytics-yolo")
-    parser.add_argument("--detector-model", default="yolo11n.pt")
+    parser.add_argument("--detector-model", default="models/yolo11n.pt")
     parser.add_argument(
         "--include-label",
         action="append",

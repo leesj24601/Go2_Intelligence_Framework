@@ -30,9 +30,10 @@ The focus is not only on moving a robot in simulation. The project is structured
   - [0. Environment Setup](#0-environment-setup-map-customization)
   - [1. Basic Robot Simulation](#1-basic-robot-simulation-manual-control)
   - [2. 3D SLAM](#2-3d-slam-rtab-map-in-isaac-sim)
-  - [3. Autonomous Navigation](#3-autonomous-navigation-nav2)
-  - [4. GUI Controller / Mission Control](#4-gui-controller--mission-control)
-  - [5. Real-world Deployment](#5-real-world-deployment)
+  - [3. Semantic Object Map & Object Navigation](#3-semantic-object-map--object-navigation)
+  - [4. Autonomous Navigation](#4-autonomous-navigation-nav2)
+  - [5. GUI Controller / Mission Control](#5-gui-controller--mission-control)
+  - [6. Real-world Deployment](#6-real-world-deployment)
 - [🤝 Acknowledgements](#-acknowledgements)
 - [📄 License](#-license)
 
@@ -55,6 +56,7 @@ flowchart TB
     subgraph SPATIAL["🗺️ Spatial Intelligence"]
         direction LR
         MAP["RTAB-Map\nMapping"] -->|save| DB[("Map DB")] -->|load| LOCAL["RTAB-Map\nLocalization"]
+        DB -->|export RGB-D · poses| SEM["Semantic Object Map\nObject labels · aliases"]
     end
 
     subgraph SENSOR["📡 Sensor & ROS 2 Bridge"]
@@ -76,6 +78,7 @@ flowchart TB
     SENS -->|"LaserScan · robot state"| NAV
     SENS -->|"telemetry · joint states"| GUI
     LOCAL -->|"map→odom TF · /map"| NAV
+    SEM -->|"object goal pose"| NAV
     NAV -->|/cmd_vel| LOC
     NAV -->|nav state| GUI
     GUI -->|"goal / waypoint"| NAV
@@ -103,11 +106,14 @@ This project aims to build a comprehensive intelligence framework for the Unitre
 - [x] **Phase 3: Intelligent GUI & Mission Control (Completed)**
   - Real-time telemetry dashboard & Live joint visualization.
   - Interactive mission planning with automated waypoint bridging.
-  - Support for **STT (Speech-to-Text) & Natural Language Commands** (Predefined matching).
+  - Support for **STT (Speech-to-Text) & Natural Language Commands**, including predefined commands and semantic object commands.
   - **HTML Web GUI** browser-based controller (no Qt dependency).
-- [x] **Phase 4: Real-world Hardware Deployment (Completed)**
+- [x] **Phase 4: Semantic Object Navigation (Completed)**
+  - Offline semantic object map generation from RTAB-Map exports and YOLO detections.
+  - Object-level commands such as `"go to the vase"` resolved into Nav2 approach goals.
+- [x] **Phase 5: Real-world Hardware Deployment (Completed)**
   - **Successful Sim2Real transfer** to physical Unitree Go2 hardware.
-- [ ] **Phase 5: Advanced LLM Intelligence (Next Step)**
+- [ ] **Phase 6: Advanced LLM Intelligence (Next Step)**
   - Integration of LLM-based reasoning for complex instruction tracking.
   - Advanced scene understanding for autonomous task-oriented behavior.
 
@@ -178,7 +184,7 @@ go2_intelligence_framework/
 ├── docs/               # Planning, references, and troubleshooting notes
 ├── launch/             # ROS 2 launch files for SLAM and Navigation
 ├── maps/               # Map databases (RTAB-Map .db files)
-├── policies/           # Pre-trained RL policies used by the locomotion layer
+├── models/             # Local model weights for RL policies and detectors
 ├── scripts/            # Core simulation, environment, and GUI launcher scripts
 └── src/                # ROS 2 packages including GUI controller dependencies
 ```
@@ -200,7 +206,10 @@ If you need to create your own simulation environment from scratch, you can buil
   <a href="https://youtu.be/74RLkOWZLKo">
     <img src="https://img.youtube.com/vi/74RLkOWZLKo/0.jpg" alt="Map Creation Demonstration" width="600">
   </a>
-  <p><i>Click the image to watch the map creation demonstration in action.</i></p>
+  <br>
+  <a href="https://youtu.be/74RLkOWZLKo">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch map creation demo on YouTube">
+  </a>
 </div>
 
 1. Open up **NVIDIA Isaac Sim**.
@@ -234,14 +243,17 @@ class MySlamEnvCfg(UnitreeGo2RoughEnvCfg):
 ### 1. Basic Robot Simulation (Manual Control)
 Before running SLAM or Navigation, you can explore your mapped environment by manually driving the Go2 robot. 
 
-> 🧠 **Locomotion Layer**: The Go2 uses a reinforcement learning policy trained via the `unitree_rl_lab` framework as its low-level mobility base. In this project, the policy is treated as the motion execution layer that enables higher-level SLAM, localization, navigation, and mission-control modules to operate on top of a walking quadruped. You can swap in your own custom-trained policy by replacing the file in the `policies/` directory, provided the policy network structure matches.
+> 🧠 **Locomotion Layer**: The Go2 uses a reinforcement learning policy trained via the `unitree_rl_lab` framework as its low-level mobility base. In this project, the policy is treated as the motion execution layer that enables higher-level SLAM, localization, navigation, and mission-control modules to operate on top of a walking quadruped. You can swap in your own custom-trained policy by replacing `models/go2_policy.pt`, provided the policy network structure matches.
 
 #### 🎥 Demonstration Video
 <div align="center">
   <a href="https://youtu.be/QgS4_h3jBiM">
     <img src="https://img.youtube.com/vi/QgS4_h3jBiM/0.jpg" alt="Basic Robot Simulation Demonstration" width="600">
   </a>
-  <p><i>Click the image to watch the manual control demonstration in action.</i></p>
+  <br>
+  <a href="https://youtu.be/QgS4_h3jBiM">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch manual control demo on YouTube">
+  </a>
 </div>
 
 #### 🚀 How to Run
@@ -269,7 +281,10 @@ Demonstrates 3D environmental mapping using RTAB-Map with the Go2 robot within t
   <a href="https://youtu.be/ZbYe7EWJfB8">
     <img src="https://img.youtube.com/vi/ZbYe7EWJfB8/0.jpg" alt="RTAB-Map SLAM Demonstration" width="600">
   </a>
-  <p><i>Click the image to watch the RTAB-Map SLAM demonstration in action.</i></p>
+  <br>
+  <a href="https://youtu.be/ZbYe7EWJfB8">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch RTAB-Map SLAM demo on YouTube">
+  </a>
 </div>
 
 > 💾 **Map Database Lifecycle**:
@@ -306,7 +321,77 @@ rviz2 -d config/go2_sim.rviz
 
 ---
 
-### 3. Autonomous Navigation (Nav2)
+### 3. Semantic Object Map & Object Navigation
+Builds a semantic object layer from an existing RTAB-Map database and uses it to convert object-level commands into Nav2 goals.
+
+This module does not replace the geometric map. RTAB-Map still provides the spatial map and localization, while the semantic object map adds object labels and aliases on top of that map. The current implementation is **offline-first**: RGB-D frames, camera poses, and calibration are exported from `rtabmap_office.db`, YOLO detections are projected into the `map` frame, and clustered object instances are saved to `semantic_objects.yaml`.
+
+**Role in the pipeline**:
+- **Input**: exported RTAB-Map RGB-D data, camera poses, calibration, and YOLO object detections.
+- **Semantic map output**: `src/go2_gui_controller/config/semantic_objects.yaml` with object labels, Korean aliases, confidence, observation count, and map-frame coordinates.
+- **Navigation output**: an approach pose near the selected object, sent to Nav2 as a `NavigateToPose` goal.
+
+Current semantic object classes include `bench`, `chair`, `couch`, `dining table`, `laptop`, `potted plant`, `refrigerator`, `tv`, and `vase`, with Korean aliases such as `벤치`, `의자`, `소파`, `테이블`, `책상`, `노트북`, `화분`, `식물`, `냉장고`, `티비`, `모니터`, and `꽃병`.
+
+The current user-facing command path is through the **HTML Web GUI**. For example, entering `"go to the vase"` resolves the matching object from the semantic map, computes an approach pose near the vase instead of driving into the object center, and sends that goal to Nav2.
+
+#### 🎥 Demonstration Video
+
+<div align="center">
+  <a href="https://youtu.be/giUkmAaH0vo">
+    <img src="https://img.youtube.com/vi/giUkmAaH0vo/0.jpg" alt="Semantic Object Navigation Demonstration" width="600">
+  </a>
+  <br>
+  <a href="https://youtu.be/giUkmAaH0vo">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch semantic object navigation demo on YouTube">
+  </a>
+</div>
+
+#### 🚀 How to Build the Semantic Map
+The semantic object map is generated after an RTAB-Map office database has been created:
+
+```bash
+# 1. Export RTAB-Map RGB-D frames, camera poses, and calibration.
+mkdir -p exports/rtabmap_office
+cd exports/rtabmap_office
+rtabmap-export --images_id --poses_camera ../../maps/rtabmap_office.db
+cd -
+
+# 2. Run YOLO on the exported RGB images and save labels to a stable path.
+yolo predict \
+  model=models/yolo11n.pt \
+  source=exports/rtabmap_office/*_rgb \
+  save_txt=True \
+  save_conf=True \
+  project=exports/rtabmap_office/yolo \
+  name=predict \
+  exist_ok=True
+
+# 3. Build the semantic object map YAML.
+python scripts/build_semantic_map_from_yolo.py \
+  --export-dir exports/rtabmap_office \
+  --labels-dir exports/rtabmap_office/yolo/predict/labels \
+  --source-db maps/rtabmap_office.db \
+  --map-id rtabmap_office \
+  --output src/go2_gui_controller/config/semantic_objects.yaml
+```
+
+Then run the HTML Web GUI and enter an object command such as `"go to the vase"`:
+
+```bash
+# Check the generated manifest values first.
+grep -A4 "^manifest:" src/go2_gui_controller/config/semantic_objects.yaml
+
+# For a new map DB, pass the generated map_id and source_fingerprint.
+ros2 launch go2_gui_controller go2_web_controller.launch.py \
+  mode:=sim \
+  semantic_map_id:=<generated_map_id> \
+  semantic_source_fingerprint:=<generated_source_fingerprint>
+```
+
+---
+
+### 4. Autonomous Navigation (Nav2)
 Integration with ROS 2 Nav2 stack for autonomous waypoint navigation and obstacle avoidance within the mapped environment.
 
 **Role in the pipeline**:
@@ -320,7 +405,10 @@ Integration with ROS 2 Nav2 stack for autonomous waypoint navigation and obstacl
   <a href="https://youtu.be/J8-3K4dXg9A">
     <img src="https://img.youtube.com/vi/J8-3K4dXg9A/0.jpg" alt="Nav2 Autonomous Navigation Demonstration" width="600">
   </a>
-  <p><i>Click the image to watch the Nav2 autonomous navigation in action.</i></p>
+  <br>
+  <a href="https://youtu.be/J8-3K4dXg9A">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Nav2 autonomous navigation demo on YouTube">
+  </a>
 </div>
 
 **2. Unmapped Static Obstacle Avoidance**
@@ -328,7 +416,10 @@ Integration with ROS 2 Nav2 stack for autonomous waypoint navigation and obstacl
   <a href="https://youtu.be/W1dHQUZ_irs">
     <img src="https://img.youtube.com/vi/W1dHQUZ_irs/0.jpg" alt="Nav2 Obstacle Avoidance Demonstration" width="600">
   </a>
-  <p><i>Click the image to watch the robot avoid unmapped static obstacles in real-time.</i></p>
+  <br>
+  <a href="https://youtu.be/W1dHQUZ_irs">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Nav2 obstacle avoidance demo on YouTube">
+  </a>
 </div>
 
 > 🗺️ **Map Dependency**: The Nav2 module is pre-configured to automatically load the map from **`maps/rtabmap_ground_truth.db`**. Please ensure you have completed the mapping process and renamed your database file as described in the SLAM section before running navigation.
@@ -358,7 +449,7 @@ rviz2 -d config/go2_sim.rviz
 
 ---
 
-### 4. GUI Controller / Mission Control
+### 5. GUI Controller / Mission Control
 
 #### 🎥 Demonstration
 <div align="center">
@@ -370,6 +461,10 @@ rviz2 -d config/go2_sim.rviz
         </a>
         <br>
         <b>Qt GUI Controller</b>
+        <br>
+        <a href="https://youtu.be/42z0Bue8SZ8">
+          <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Qt GUI demo on YouTube">
+        </a>
       </td>
       <td align="center" width="50%">
         <a href="docs/assets/HTML%20Web%20GUI.png">
@@ -380,7 +475,6 @@ rviz2 -d config/go2_sim.rviz
       </td>
     </tr>
   </table>
-  <p><i>Click the Qt GUI image to watch the Complete Mission Control Dashboard & Autonomous Navigation demonstration.</i></p>
 </div>
 
 #### 🎮 Mission Control Interface
@@ -400,7 +494,7 @@ The project now provides **two controller frontends**:
 *   **Intuitive Teleoperation**: Direct control via GUI buttons.
 *   **Real-time Telemetry Dashboard**: Monitor the robot's state in real-time. Live joint value charts are available in the Qt GUI.
 *   **Mission Planning**: Set waypoints and monitor robot status in real-time.
-*   **Natural Language Commands (Current)**: Support for predefined simple commands via text or **STT (Speech-to-Text)** voice input to automatically set corresponding waypoints via the GUI bridge.
+*   **Natural Language Commands (Current)**: Support for predefined simple commands via text or **STT (Speech-to-Text)** voice input to automatically set corresponding waypoints via the GUI bridge. The HTML Web GUI also exposes semantic object commands such as `"go to the vase"` through the semantic object navigation layer.
 *   **Runtime Stack Control**: Start/stop SLAM, Navigation, and RViz directly from the controller. SLAM and Navigation are intentionally managed as **mutually exclusive** runtime stacks.
 
 #### 🚀 How to Run (Qt GUI)
@@ -429,7 +523,7 @@ http://127.0.0.1:8080
 
 ---
 
-### 5. Real-world Deployment
+### 6. Real-world Deployment
 This section showcases the implementation of the framework on the physical Unitree Go2 robot, demonstrating the robustness of the SLAM and navigation systems outside of the simulation.
 
 The Sim2Real stage is designed around software-layer reuse rather than a one-off hardware demo. The deployment path preserves the core autonomy stack while replacing simulation-specific interfaces with hardware-facing ones:
@@ -447,7 +541,10 @@ The Sim2Real stage is designed around software-layer reuse rather than a one-off
   <a href="https://youtu.be/naLCEioS-cA">
     <img src="https://img.youtube.com/vi/naLCEioS-cA/0.jpg" alt="RTAB-Map Real-world SLAM Execution" width="600">
   </a>
-  <p><i>Click the image to watch the <b>3D SLAM (RTAB-Map)</b> running on the real Unitree Go2 hardware.</i></p>
+  <br>
+  <a href="https://youtu.be/naLCEioS-cA">
+    <img src="https://img.shields.io/badge/YouTube-Watch%20Demo-red?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch real-world RTAB-Map SLAM demo on YouTube">
+  </a>
 </div>
 
 #### 🚀 How to Run

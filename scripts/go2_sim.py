@@ -400,8 +400,8 @@ def main(env_cfg, agent_cfg):
     env = RslRlVecEnvWrapper(env)
 
     # 4. Load Policy — 프로젝트 내에 복사된 정책 파일 사용
-    policy_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "policies")
-    resume_path = os.path.join(policy_dir, "go2_policy.pt")
+    model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "models")
+    resume_path = os.path.join(model_dir, "go2_policy.pt")
 
     if not os.path.exists(resume_path):
         raise FileNotFoundError(f"프로젝트 내에 정책 파일이 없습니다: {resume_path}")

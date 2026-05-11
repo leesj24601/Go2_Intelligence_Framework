@@ -35,7 +35,7 @@ created: 2026-04-27
 - detector 방향 재결정 및 spike 완료
   - YOLO-World 직접 repo 설치는 의존성/운영 복잡도 때문에 1차 경로에서 제외
   - 1차 detector는 Ultralytics YOLO detect 모델로 진행
-  - `yolo11n.pt` smoke/full RGB export inference 확인
+  - `models/yolo11n.pt` smoke/full RGB export inference 확인
   - segmentation은 필요 시 후속으로 전환 검토
 - Isaac Sim Office USD 실험 시작
   - `assets/office.usd` 저장
@@ -56,7 +56,7 @@ created: 2026-04-27
   - manifest 포함 `semantic_objects.yaml` 생성
 - RTAB-Map Office DB export / YOLO inference / semantic map 생성 흐름 확인
   - `rtabmap-export --images_id --poses_camera ... maps/rtabmap_office.db`
-  - `yolo predict model=yolo11n.pt ... save_txt=True save_conf=True`
+  - `yolo predict model=models/yolo11n.pt ... save_txt=True save_conf=True`
   - generated Office semantic map을 Web GUI config로 연결
 - semantic approach pose 방향 수정
   - 객체 좌표 자체가 아니라 객체를 관측했던 위치 방향의 접근점으로 이동
@@ -349,12 +349,12 @@ Nav2로 보내기 전 최소 검증을 수행한다.
 실제 구현 중 YOLO-World 직접 repo 설치가 `mmyolo`/OpenMMLab 의존성에서 부담이 커졌고,
 이번 프로젝트의 1차 요구가 open-vocabulary prompt 실험보다
 Office DB의 고정 객체 map 생성에 가까워졌기 때문에
-현재 구현은 **Ultralytics YOLO detect (`yolo11n.pt`)** 경로로 전환했다.
+현재 구현은 **Ultralytics YOLO detect (`models/yolo11n.pt`)** 경로로 전환했다.
 
 현재 1차 구현 상태:
 
 - `conda`의 `yolo` 환경에 Ultralytics 설치
-- RTAB-Map RGB export에 대해 `yolo predict ... save_txt=True save_conf=True` 실행
+- RTAB-Map RGB export에 대해 `yolo predict model=models/yolo11n.pt ... save_txt=True save_conf=True` 실행
 - `scripts/build_semantic_map_from_yolo.py`가 Ultralytics txt label을 소비
 - generated `semantic_objects.yaml`을 Web GUI config로 연결
 

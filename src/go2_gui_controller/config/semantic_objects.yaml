@@ -7,7 +7,7 @@ manifest:
   builder_version: offline_yolo_builder_v1
   detector:
     name: ultralytics-yolo
-    model: yolo11n.pt
+    model: models/yolo11n.pt
 objects:
   bench_1:
     label: bench
