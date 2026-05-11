@@ -115,7 +115,12 @@ class WebControllerNode(Node):
         self._lock = threading.Lock()
         self._logs: list[str] = []
         self._pending_log: str | None = None
-        self._stack_status = {"slam": "stopped", "navigation": "stopped", "rviz": "stopped"}
+        self._stack_status = {
+            "simulation": "stopped" if self.runtime_mode_key == "sim" else "disabled",
+            "slam": "stopped",
+            "navigation": "stopped",
+            "rviz": "stopped",
+        }
         self._running = True
 
         self.waypoint_registry = WaypointRegistry(waypoint_file)
@@ -537,6 +542,20 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
     @app.post("/stack/stop")
     async def stack_stop(request: StackTargetRequest) -> dict:
         ok, message = node.launch_manager.stop(request.target)
+        if not ok:
+            raise HTTPException(status_code=400, detail=message)
+        return {"ok": True, "message": message}
+
+    @app.post("/sim/start")
+    async def simulation_start() -> dict:
+        ok, message = node.launch_manager.start_simulation()
+        if not ok:
+            raise HTTPException(status_code=400, detail=message)
+        return {"ok": True, "message": message}
+
+    @app.post("/sim/stop")
+    async def simulation_stop() -> dict:
+        ok, message = node.launch_manager.stop_simulation()
         if not ok:
             raise HTTPException(status_code=400, detail=message)
         return {"ok": True, "message": message}

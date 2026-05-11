@@ -464,6 +464,12 @@
         <p>`SLAM`과 `Navigation`은 기존 GUI와 동일하게 상호 배타적으로 관리됩니다.</p>
         <div class="status-list">
           <div class="status-row">
+            <strong>Simulation</strong>
+            <button class="primary" id="startSimulationButton" disabled>Start</button>
+            <button class="secondary" id="stopSimulationButton" disabled>Stop</button>
+            <span id="simulationStatus" class="status-pill">stopped</span>
+          </div>
+          <div class="status-row">
             <strong>SLAM</strong>
             <button class="primary" data-stack-start="slam">Start</button>
             <button class="secondary" data-stack-stop="slam">Stop</button>
@@ -606,9 +612,16 @@
         data.voice_available ? "ready" : "unavailable";
       document.getElementById("voiceStatusText").textContent =
         `Voice status: ${data.voice_available ? "ready" : data.voice_status}`;
+      const simulationStatus = data.stacks.simulation || "disabled";
+      document.getElementById("simulationStatus").textContent = simulationStatus;
       document.getElementById("slamStatus").textContent = data.stacks.slam;
       document.getElementById("navigationStatus").textContent = data.stacks.navigation;
       document.getElementById("rvizStatus").textContent = data.stacks.rviz;
+      const simulationAvailable = data.mode === "sim";
+      document.getElementById("startSimulationButton").disabled =
+        !simulationAvailable || simulationStatus === "running" || simulationStatus === "starting";
+      document.getElementById("stopSimulationButton").disabled =
+        !simulationAvailable || !["running", "starting"].includes(simulationStatus);
       updateWaypoints(data.waypoints || []);
       if (data.log) {
         appendLog(data.log);
@@ -796,6 +809,24 @@
         } finally {
           button.disabled = false;
           button.textContent = "Listen";
+        }
+      });
+
+      document.getElementById("startSimulationButton").addEventListener("click", async () => {
+        try {
+          const data = await postJson("/sim/start");
+          setFeedback(data.message);
+        } catch (error) {
+          setFeedback(error.message, true);
+        }
+      });
+
+      document.getElementById("stopSimulationButton").addEventListener("click", async () => {
+        try {
+          const data = await postJson("/sim/stop");
+          setFeedback(data.message);
+        } catch (error) {
+          setFeedback(error.message, true);
         }
       });
 

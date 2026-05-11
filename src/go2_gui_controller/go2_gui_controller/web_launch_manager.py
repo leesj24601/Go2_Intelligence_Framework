@@ -4,8 +4,10 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 import signal
+import shutil
 import subprocess
 import threading
+import time
 from typing import Callable
 
 
@@ -22,9 +24,19 @@ class StackSpec:
 
 class WebLaunchManager:
     STACK_TERMINATION_GRACE_SEC = 15.0
+    SIMULATION_TERMINATION_GRACE_SEC = 30.0
     RVIZ_TERMINATION_GRACE_SEC = 3.0
+    FORCE_CLEANUP_SIGNAL_GRACE_SEC = 0.2
+    FORCE_CLEANUP_SIGNALS = ("INT", "TERM", "KILL")
     FORCE_CLEANUP_PATTERNS = (
+        "go2_sim.py",
+        "go2_rtabmap.launch.py",
+        "go2_navigation.launch.py",
+        "go2_rtabmap_real.launch.py",
+        "go2_navigation_real.launch.py",
         "rtabmap_slam",
+        "depthimage_to_laserscan",
+        "static_transform_publisher",
         "nav2_",
         "robot_state_publisher",
         "rviz2",
@@ -36,6 +48,7 @@ class WebLaunchManager:
         ("launch", "go2_rtabmap_real.launch.py"),
         ("launch", "go2_navigation_real.launch.py"),
         ("config", "go2_sim.rviz"),
+        ("scripts", "go2_sim.py"),
     )
 
     def __init__(self, runtime_mode_key: str, log_callback: LogCallback, status_callback: StatusCallback):
@@ -48,6 +61,9 @@ class WebLaunchManager:
         self._stop_requested: dict[str, bool] = {}
         self._processes: dict[str, subprocess.Popen[str] | None] = {}
         self._states: dict[str, str] = {}
+        self._simulation_process: subprocess.Popen[str] | None = None
+        self._simulation_state = "disabled" if runtime_mode_key != "sim" else "stopped"
+        self._simulation_stop_requested = False
         self._rviz_process: subprocess.Popen[str] | None = None
         self._rviz_state = "stopped"
         self._rviz_stop_requested = False
@@ -73,6 +89,8 @@ class WebLaunchManager:
             self._processes[key] = None
             self._states[key] = "stopped"
             self._status_callback(key, "stopped")
+        self._simulation_script = self._project_dir / "scripts" / "go2_sim.py"
+        self._status_callback("simulation", self._simulation_state)
         self._rviz_config_file = self._project_dir / "config" / "go2_sim.rviz"
         self._status_callback("rviz", "stopped")
 
@@ -96,11 +114,23 @@ class WebLaunchManager:
         with self._lock:
             return self._rviz_state
 
+    def simulation_status_text(self) -> str:
+        if not self.available:
+            return f"unavailable ({self._unavailable_reason})"
+        with self._lock:
+            return self._simulation_state
+
     def is_process_running(self, key: str) -> bool:
         if not self.available:
             return False
         with self._lock:
             return self._process_alive(self._processes.get(key))
+
+    def is_simulation_running(self) -> bool:
+        if not self.available:
+            return False
+        with self._lock:
+            return self._process_alive(self._simulation_process)
 
     def start(self, key: str) -> tuple[bool, str]:
         if not self.available:
@@ -127,6 +157,47 @@ class WebLaunchManager:
         self._start_process(key)
         return True, f"starting {self._specs[key].label} stack"
 
+    def start_simulation(self) -> tuple[bool, str]:
+        if not self.available:
+            return False, self._unavailable_reason
+        if self._runtime_mode_key != "sim":
+            return False, "Simulation launcher is only available in sim mode"
+
+        with self._lock:
+            if self._process_alive(self._simulation_process):
+                return False, "Simulation is already running"
+            self._simulation_stop_requested = False
+            self._simulation_state = "starting"
+            self._status_callback("simulation", "starting")
+
+        command = self._simulation_command()
+        try:
+            process = subprocess.Popen(
+                command,
+                cwd=self._project_dir,
+                env=self._simulation_environment(),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                start_new_session=True,
+            )
+        except OSError as exc:
+            with self._lock:
+                self._simulation_state = "stopped"
+                self._status_callback("simulation", "stopped")
+            self._log(f"[Runtime] Simulation failed to start: {exc}")
+            return False, f"Simulation failed to start: {exc}"
+
+        with self._lock:
+            self._simulation_process = process
+            self._simulation_state = "running"
+            self._status_callback("simulation", "running")
+        self._log(f"[Runtime] Simulation started ({' '.join(command)})")
+        self._spawn_output_thread(process, "Simulation")
+        self._spawn_simulation_monitor_thread(process)
+        return True, "starting Simulation"
+
     def stop(self, key: str) -> tuple[bool, str]:
         if not self.available:
             return False, self._unavailable_reason
@@ -152,6 +223,26 @@ class WebLaunchManager:
             lambda managed_key=key: self._kill_if_needed(managed_key),
         ).start()
         return True, f"stopping {self._specs[key].label} stack"
+
+    def stop_simulation(self) -> tuple[bool, str]:
+        if not self.available:
+            return False, self._unavailable_reason
+        if self._runtime_mode_key != "sim":
+            return False, "Simulation launcher is only available in sim mode"
+
+        with self._lock:
+            if not self._process_alive(self._simulation_process):
+                return False, "Simulation is not running"
+            self._simulation_stop_requested = True
+            self._simulation_state = "stopping"
+            self._status_callback("simulation", "stopping")
+            assert self._simulation_process is not None
+            self._interrupt_group(self._simulation_process)
+        self._log(
+            f"[Runtime] waiting up to {self.SIMULATION_TERMINATION_GRACE_SEC:.0f}s for Simulation shutdown"
+        )
+        threading.Timer(self.SIMULATION_TERMINATION_GRACE_SEC, self._kill_simulation_if_needed).start()
+        return True, "stopping Simulation"
 
     def open_rviz(self) -> tuple[bool, str]:
         if not self.available:
@@ -204,11 +295,15 @@ class WebLaunchManager:
         with self._lock:
             self._pending_start_key = None
             known_processes = [process for process in self._processes.values() if self._process_alive(process)]
+            simulation_process = self._simulation_process if self._process_alive(self._simulation_process) else None
             rviz_process = self._rviz_process if self._process_alive(self._rviz_process) else None
             for key in self._specs:
                 self._stop_requested[key] = True
                 self._states[key] = "stopped"
                 self._status_callback(key, "stopped")
+            self._simulation_stop_requested = simulation_process is not None
+            self._simulation_state = "stopped" if self._runtime_mode_key == "sim" else "disabled"
+            self._status_callback("simulation", self._simulation_state)
             self._rviz_stop_requested = True
             self._rviz_state = "stopped"
             self._status_callback("rviz", "stopped")
@@ -216,6 +311,8 @@ class WebLaunchManager:
         for process in known_processes:
             assert process is not None
             self._interrupt_group(process)
+        if simulation_process is not None:
+            self._interrupt_group(simulation_process)
         if rviz_process is not None:
             self._terminate_group(rviz_process)
 
@@ -223,21 +320,14 @@ class WebLaunchManager:
         missing_patterns: list[str] = []
         failed_patterns: list[str] = []
         for pattern in self.FORCE_CLEANUP_PATTERNS:
-            result = subprocess.run(
-                ["pkill", "-f", pattern],
-                capture_output=True,
-                text=True,
-                timeout=3.0,
-                check=False,
-            )
-            if result.returncode == 0:
+            status, error = self._force_cleanup_pattern(pattern)
+            if status == "killed":
                 killed_patterns.append(pattern)
-            elif result.returncode == 1:
+            elif status == "missing":
                 missing_patterns.append(pattern)
             else:
                 failed_patterns.append(pattern)
-                stderr = result.stderr.strip()
-                self._log(f"[Runtime] force cleanup failed for {pattern}: {stderr or result.returncode}")
+                self._log(f"[Runtime] force cleanup failed for {pattern}: {error or 'unknown error'}")
 
         self._log(
             "[Runtime] force cleanup requested "
@@ -247,17 +337,46 @@ class WebLaunchManager:
             return False, f"force cleanup failed for: {', '.join(failed_patterns)}"
         return True, "force cleanup sent"
 
+    def _force_cleanup_pattern(self, pattern: str) -> tuple[str, str]:
+        signaled = False
+        for signal_name in self.FORCE_CLEANUP_SIGNALS:
+            result = subprocess.run(
+                ["pkill", f"-{signal_name}", "-f", pattern],
+                capture_output=True,
+                text=True,
+                timeout=3.0,
+                check=False,
+            )
+            if result.returncode == 0:
+                signaled = True
+                if signal_name != self.FORCE_CLEANUP_SIGNALS[-1]:
+                    time.sleep(self.FORCE_CLEANUP_SIGNAL_GRACE_SEC)
+                continue
+            if result.returncode == 1:
+                return ("killed" if signaled else "missing"), ""
+            return "failed", result.stderr.strip() or str(result.returncode)
+        return ("killed" if signaled else "missing"), ""
+
     def shutdown(self) -> None:
         if not self.available:
             return
 
         with self._lock:
             self._pending_start_key = None
+            simulation_process = self._simulation_process
             rviz_process = self._rviz_process
             processes = {key: process for key, process in self._processes.items() if process is not None}
             for key in processes:
                 self._stop_requested[key] = True
+            self._simulation_stop_requested = simulation_process is not None
             self._rviz_stop_requested = rviz_process is not None
+
+        if simulation_process is not None and self._process_alive(simulation_process):
+            self._interrupt_group(simulation_process)
+            try:
+                simulation_process.wait(timeout=self.SIMULATION_TERMINATION_GRACE_SEC)
+            except subprocess.TimeoutExpired:
+                self._kill_group(simulation_process)
 
         if rviz_process is not None and self._process_alive(rviz_process):
             self._terminate_group(rviz_process)
@@ -302,12 +421,61 @@ class WebLaunchManager:
         self._spawn_output_thread(process, spec.label)
         self._spawn_monitor_thread(key, process)
 
+    def _simulation_command(self) -> list[str]:
+        python_executable = os.environ.get("GO2_SIM_PYTHON", "").strip()
+        if python_executable:
+            return [python_executable, str(self._simulation_script)]
+
+        conda_env = os.environ.get("GO2_SIM_CONDA_ENV", "lab").strip() or "lab"
+        conda_prefix = self._simulation_conda_prefix(conda_env)
+        env_python = conda_prefix / "bin" / "python"
+        if env_python.is_file():
+            return [str(env_python), str(self._simulation_script)]
+
+        conda_executable = os.environ.get("GO2_SIM_CONDA_EXE", "").strip()
+        if not conda_executable:
+            default_conda = Path.home() / "anaconda3" / "bin" / "conda"
+            conda_executable = str(default_conda) if default_conda.is_file() else shutil.which("conda") or "conda"
+
+        return [
+            conda_executable,
+            "run",
+            "--no-capture-output",
+            "-n",
+            conda_env,
+            "python",
+            str(self._simulation_script),
+        ]
+
+    def _simulation_environment(self) -> dict[str, str]:
+        env = dict(os.environ)
+        conda_env = os.environ.get("GO2_SIM_CONDA_ENV", "lab").strip() or "lab"
+        conda_prefix = self._simulation_conda_prefix(conda_env)
+        conda_bin = str(conda_prefix / "bin")
+        path_parts = [part for part in env.get("PATH", "").split(os.pathsep) if part]
+        if conda_bin not in path_parts:
+            path_parts.insert(0, conda_bin)
+        env["PATH"] = os.pathsep.join(path_parts)
+        env["CONDA_PREFIX"] = str(conda_prefix)
+        env["CONDA_DEFAULT_ENV"] = conda_env
+        return env
+
+    def _simulation_conda_prefix(self, conda_env: str) -> Path:
+        configured_prefix = os.environ.get("GO2_SIM_CONDA_PREFIX", "").strip()
+        if configured_prefix:
+            return Path(configured_prefix)
+        return Path.home() / "anaconda3" / "envs" / conda_env
+
     def _spawn_output_thread(self, process: subprocess.Popen[str], label: str) -> None:
         thread = threading.Thread(target=self._drain_output, args=(process, label), daemon=True)
         thread.start()
 
     def _spawn_monitor_thread(self, key: str, process: subprocess.Popen[str]) -> None:
         thread = threading.Thread(target=self._monitor_process, args=(key, process), daemon=True)
+        thread.start()
+
+    def _spawn_simulation_monitor_thread(self, process: subprocess.Popen[str]) -> None:
+        thread = threading.Thread(target=self._monitor_simulation_process, args=(process,), daemon=True)
         thread.start()
 
     def _spawn_rviz_monitor_thread(self, process: subprocess.Popen[str]) -> None:
@@ -358,6 +526,31 @@ class WebLaunchManager:
         if pending_key is not None:
             self._start_process(pending_key)
 
+    def _monitor_simulation_process(self, process: subprocess.Popen[str]) -> None:
+        exit_code = process.wait()
+        with self._lock:
+            if self._simulation_process is process:
+                self._simulation_process = None
+            was_stop_requested = self._simulation_stop_requested
+            self._simulation_stop_requested = False
+
+            if self._runtime_mode_key != "sim":
+                state = "disabled"
+                message = "[Runtime] Simulation launcher disabled"
+            elif was_stop_requested:
+                state = "stopped"
+                message = "[Runtime] Simulation stopped"
+            elif exit_code < 0:
+                state = "crashed"
+                message = "[Runtime] Simulation crashed"
+            else:
+                state = f"exited ({exit_code})"
+                message = f"[Runtime] Simulation exited with code {exit_code}"
+
+            self._simulation_state = state
+            self._status_callback("simulation", state)
+            self._log(message)
+
     def _monitor_rviz_process(self, process: subprocess.Popen[str]) -> None:
         exit_code = process.wait()
         with self._lock:
@@ -386,6 +579,15 @@ class WebLaunchManager:
         if not self._process_alive(process):
             return
         self._log(f"[Runtime] force-killing {self._specs[key].label} stack")
+        assert process is not None
+        self._kill_group(process)
+
+    def _kill_simulation_if_needed(self) -> None:
+        with self._lock:
+            process = self._simulation_process
+        if not self._process_alive(process):
+            return
+        self._log("[Runtime] force-killing Simulation")
         assert process is not None
         self._kill_group(process)
 
