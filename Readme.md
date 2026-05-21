@@ -153,25 +153,22 @@ Before getting started, ensure your system meets the following requirements:
    rosdep install --from-paths src --ignore-src -r -y
    ```
    This reads both `go2_gui_controller` and `go2_project_dependencies` under `src/`.
-6. **GUI Controller Setup (Mandatory)**:
-   Before running the interactive controller for the first time, you need to set up and build the GUI package in a separate workspace:
-   - **Create an external workspace and link the package**:
-     ```bash
-     cd ~
-     mkdir -p go2_gui_controller_ws/src
-     ln -s ~/go2_intelligence_framework/src/go2_gui_controller ~/go2_gui_controller_ws/src/
-     ```
-   - **Build the package**:
-     ```bash
-     cd ~/go2_gui_controller_ws
-     source /opt/ros/humble/setup.bash
-     colcon build --packages-select go2_gui_controller
-     ```
+6. **Build the project workspace**:
+   Build the ROS 2 packages directly from this repository root:
+   ```bash
+   cd ~/go2_intelligence_framework
+   source /opt/ros/humble/setup.bash
+   colcon build --symlink-install
+   ```
+   For a faster GUI-only rebuild during development:
+   ```bash
+   colcon build --symlink-install --packages-select go2_gui_controller
+   ```
 7. **Source your ROS environments in each ROS terminal before running commands**:
    ```bash
    source /opt/ros/humble/setup.bash
    source ~/go2_description_ws/install/setup.bash
-   source ~/go2_gui_controller_ws/install/setup.bash
+   source ~/go2_intelligence_framework/install/setup.bash
    ```
 
 ---
@@ -501,6 +498,8 @@ The project now provides **two controller frontends**:
 While `go2_sim.py` is running, open a new terminal and launch the original Qt GUI controller:
 
 ```bash
+source /opt/ros/humble/setup.bash
+source install/setup.bash
 bash scripts/run_gui_controller.sh
 ```
 
@@ -508,6 +507,9 @@ bash scripts/run_gui_controller.sh
 While `go2_sim.py` is running, open a new terminal and launch the browser-based controller:
 
 ```bash
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+
 # Simulation mode
 ros2 launch go2_gui_controller go2_web_controller.launch.py mode:=sim
 

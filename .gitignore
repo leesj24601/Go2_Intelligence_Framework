@@ -28,3 +28,6 @@ maps
 
 # tool caches
 .ruff_cache/
+
+# 문서
+idea.md

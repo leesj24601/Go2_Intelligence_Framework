@@ -528,8 +528,8 @@ uvicorn[standard]
 ## 실행 방법
 
 ```bash
-# 빌드 (go2_gui_controller_ws 기준)
-colcon build --packages-select go2_gui_controller
+# 빌드 (repo 루트 기준)
+colcon build --symlink-install --packages-select go2_gui_controller
 source install/setup.bash
 
 # 실행 (시뮬레이션)

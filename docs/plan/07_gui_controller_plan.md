@@ -62,23 +62,23 @@ GUI
 ### 권장 방식
 
 가장 덜 헷갈리고 현재 구조에서 가장 안정적인 방식은
-**외부 GUI workspace에서 한 번 빌드하고, repo에서는 실행만 하는 것**이다.
+**이 repository 자체를 ROS 2 workspace로 보고, repo 루트에서 빌드/실행하는 것**이다.
 
 `[권장]`
 
 ```bash
-cd ~/Desktop/sj/go2_gui_controller_ws
-colcon build --packages-select go2_gui_controller
-
 cd ~/Desktop/sj/go2_intelligence_framework
+source /opt/ros/humble/setup.bash
+colcon build --symlink-install --packages-select go2_gui_controller
+source install/setup.bash
 bash ./scripts/run_gui_controller.sh
 ```
 
 의미:
 
-- 첫 두 줄: 외부 workspace에서 GUI 패키지 빌드
-- 마지막 줄: repo 쪽 실행 스크립트로 GUI 실행
-- `run_gui_controller.sh`는 외부 workspace의 `install/go2_gui_controller`를 우선 사용한다.
+- `src/go2_gui_controller/`는 이 repo 안의 ROS 2 Python 패키지 소스다.
+- `build/`, `install/`, `log/`는 repo 루트의 colcon workspace 산출물이다.
+- `run_gui_controller.sh`는 repo 루트의 `install/setup.bash`를 source한 뒤 `go2_gui_controller`를 실행한다.
 
 ### 빌드는 언제 필요한가
 
@@ -96,22 +96,22 @@ bash ./scripts/run_gui_controller.sh
 1. 처음 한 번 빌드
 2. 그 뒤에는 `bash ./scripts/run_gui_controller.sh`만 반복 실행
 
-### 외부 workspace 구조
+### workspace 구조
 
 ```text
-~/Desktop/sj/go2_gui_controller_ws/
+~/Desktop/sj/go2_intelligence_framework/
   src/
-    go2_gui_controller -> ~/Desktop/sj/go2_intelligence_framework/src/go2_gui_controller
+    go2_gui_controller/
+    go2_project_dependencies/
   build/
   install/
   log/
 ```
 
-즉 GUI 패키지 소스는 이 repo에 두고,
-`build / install / log` 산출물만 외부 workspace에 만든다.
+즉 GUI 패키지 소스와 colcon 산출물을 모두 이 repo workspace 기준으로 관리한다.
 
-현재 외부 workspace는 `colcon build --packages-select go2_gui_controller`의
-기본 `isolated install` 구조를 사용한다.
+기본 개발 빌드는 `--symlink-install`을 사용한다. Python 코드와 launch/config 같은
+비컴파일 리소스를 반복 수정할 때 install 쪽 반영이 더 예측 가능하다.
 
 ### 직접 실행 방식
 
@@ -120,7 +120,7 @@ bash ./scripts/run_gui_controller.sh
 아래 방식은 디버깅용이다.
 
 ```bash
-cd ~/Desktop/sj/go2_gui_controller_ws
+cd ~/Desktop/sj/go2_intelligence_framework
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 ros2 run go2_gui_controller gui_controller
@@ -129,8 +129,8 @@ ros2 run go2_gui_controller gui_controller
 정리:
 
 - 평소에는 `bash ./scripts/run_gui_controller.sh` 실행만 하면 된다.
-- 빌드는 `~/Desktop/sj/go2_gui_controller_ws`에서 처음 한 번, 그리고 코드가 바뀌었을 때만 다시 한다.
-- 즉 repo 루트에는 더 이상 GUI용 `build / install / log` 산출물을 만들지 않는다.
+- 빌드는 repo 루트에서 처음 한 번, 그리고 코드가 바뀌었을 때만 다시 한다.
+- GUI 빌드/실행은 이 repo 루트에서만 관리한다.
 
 일상 사용 기준으로는 위보다 `bash ./scripts/run_gui_controller.sh`를 권장한다.
 
