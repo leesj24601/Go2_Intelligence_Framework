@@ -21,6 +21,7 @@ from .manual_control import ManualControlBridge
 from .navigator_bridge import NavigatorBridge
 from .semantic_goal_resolver import SemanticGoalError, SemanticGoalResolver
 from .semantic_object_registry import SemanticMapValidationError, SemanticObjectRegistry
+from .semantic_place_registry import SemanticPlaceRegistry
 from .state_bridge import StateBridge
 from .telemetry_bridge import TelemetryBridge
 from .text_command_parser import TextCommandParser
@@ -130,6 +131,7 @@ class WebControllerNode(Node):
 
         self.waypoint_registry = WaypointRegistry(waypoint_file)
         self.semantic_registry = SemanticObjectRegistry(semantic_object_file)
+        self.semantic_place_registry = SemanticPlaceRegistry(semantic_object_file)
         self.semantic_goal_resolver = SemanticGoalResolver()
         self.state_bridge = StateBridge(self, odom_topic=self.runtime_mode["odom_topic"])
         self.telemetry_bridge = TelemetryBridge(self, odom_topic=self.runtime_mode["odom_topic"])
@@ -321,8 +323,21 @@ def execute_parsed_command(
         current_pose = None
         if node.state_bridge.state.frame_id == "map":
             current_pose = (node.state_bridge.state.x, node.state_bridge.state.y)
-        semantic_object = node.semantic_registry.best_match(command.object_label, current_pose=current_pose)
+        place = None
+        place_id = None
+        if command.place_label:
+            place = node.semantic_place_registry.best_match(command.place_label)
+            if place is None:
+                raise ValueError(f"place_not_found:{command.place_label}")
+            place_id = place.place_id
+        semantic_object = node.semantic_registry.best_match(
+            command.object_label,
+            current_pose=current_pose,
+            place_id=place_id,
+        )
         if semantic_object is None:
+            if place is not None:
+                raise ValueError(f"object_not_found:{command.object_label}@{place.place_id}")
             raise ValueError(f"object_not_found:{command.object_label}")
         goal = node.semantic_goal_resolver.resolve(
             semantic_object,
@@ -332,7 +347,7 @@ def execute_parsed_command(
         node.navigator_bridge.go_to_semantic_goal(goal)
         node._append_log(
             f"[Control] {source_prefix} navigate_to_object: {semantic_object.object_id} "
-            f"relation={goal.relation} x={goal.x:.2f}, y={goal.y:.2f}"
+            f"relation={goal.relation} place={place.place_id if place else '-'} x={goal.x:.2f}, y={goal.y:.2f}"
         )
         return f"navigating to object {semantic_object.object_id}"
 
@@ -542,6 +557,8 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
         ok, message = node.launch_manager.start(request.target, map_name=request.map_name)
         if not ok:
             raise HTTPException(status_code=400, detail=message)
+        if request.target == "navigation":
+            node.state_bridge.reset_localization_tracking()
         return {"ok": True, "message": message}
 
     @app.post("/stack/stop")
@@ -553,6 +570,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
 
     @app.post("/sim/start")
     async def simulation_start() -> dict:
+        node.state_bridge.reset_runtime_tracking()
         ok, message = node.launch_manager.start_simulation()
         if not ok:
             raise HTTPException(status_code=400, detail=message)
@@ -563,6 +581,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
         ok, message = node.launch_manager.stop_simulation()
         if not ok:
             raise HTTPException(status_code=400, detail=message)
+        node.state_bridge.reset_runtime_tracking()
         return {"ok": True, "message": message}
 
     @app.post("/stack/rviz/open")
@@ -583,6 +602,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
     async def stack_force_cleanup() -> dict:
         node.navigator_bridge.cancel()
         node.manual_bridge.stop()
+        node.state_bridge.reset_runtime_tracking()
         ok, message = await run_in_threadpool(node.launch_manager.force_cleanup_runtime)
         if not ok:
             raise HTTPException(status_code=500, detail=message)
@@ -625,7 +645,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
 def main() -> None:
     share_dir = Path(get_package_share_directory("go2_gui_controller"))
     waypoint_file = share_dir / "config" / "waypoints.yaml"
-    semantic_object_file = share_dir / "config" / "semantic_objects.yaml"
+    semantic_object_file = share_dir / "config" / "semantic_objects_with_places.yaml"
     index_file = share_dir / "web" / "index.html"
 
     rclpy.init()

@@ -10,6 +10,14 @@ manifest:
     model: models/yolo11n.pt
   source_nav2_map: maps/office_place.yaml
   place_builder_version: semantic_place_builder_v2
+  place_builder_segmentation_mode: auto
+  place_builder_selected_segmentation_mode: hall_core
+  place_builder_auto_scores:
+    gateway_watershed: 1.2964
+    generic: 1.3057
+    hall_core: 1.8577
+  place_builder_hall_core_distance_m: 1.3
+  place_builder_hall_growth_m: 1.5
 objects:
   bench_1:
     label: bench
@@ -27,7 +35,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 19.6737
     observer_y: -8.0941
-    place_id: room_candidate_8
+    place_id: room_candidate_2
   bench_2:
     label: bench
     aliases:
@@ -44,7 +52,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.1752
     observer_y: 7.872
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_3:
     label: bench
     aliases:
@@ -61,7 +69,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 1.583
     observer_y: 4.1688
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_4:
     label: bench
     aliases:
@@ -78,7 +86,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 9.3523
     observer_y: -6.6581
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_5:
     label: bench
     aliases:
@@ -95,7 +103,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 13.5739
     observer_y: 9.6671
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_6:
     label: bench
     aliases:
@@ -112,7 +120,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 9.0999
     observer_y: 4.6836
-    place_id: room_candidate_4
+    place_id: main_hall
   bench_7:
     label: bench
     aliases:
@@ -129,7 +137,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 23.304
     observer_y: -11.9949
-    place_id: room_candidate_9
+    place_id: room_candidate_3
   bench_8:
     label: bench
     aliases:
@@ -146,7 +154,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.9358
     observer_y: -8.8761
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_9:
     label: bench
     aliases:
@@ -163,7 +171,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.5398
     observer_y: 7.6046
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_10:
     label: bench
     aliases:
@@ -180,7 +188,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 2.8441
     observer_y: 3.514
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_11:
     label: bench
     aliases:
@@ -197,7 +205,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.1212
     observer_y: 11.3581
-    place_id: room_candidate_2
+    place_id: main_hall
   bench_12:
     label: bench
     aliases:
@@ -214,7 +222,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 12.0817
     observer_y: 9.0464
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_13:
     label: bench
     aliases:
@@ -231,7 +239,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.2168
     observer_y: 1.8171
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_14:
     label: bench
     aliases:
@@ -248,7 +256,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 3.6754
     observer_y: -6.9858
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_15:
     label: bench
     aliases:
@@ -265,7 +273,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 5.3563
     observer_y: -6.1336
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_16:
     label: bench
     aliases:
@@ -282,6 +290,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -4.2332
     observer_y: -6.9008
+    place_id: main_hall
   bench_17:
     label: bench
     aliases:
@@ -298,7 +307,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 19.1082
     observer_y: -7.997
-    place_id: room_candidate_8
+    place_id: room_candidate_2
   bench_18:
     label: bench
     aliases:
@@ -315,7 +324,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 8.284
     observer_y: 7.96
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_19:
     label: bench
     aliases:
@@ -332,7 +341,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 14.6606
     observer_y: 9.3734
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_20:
     label: bench
     aliases:
@@ -349,7 +358,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.291
     observer_y: 9.4072
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_21:
     label: bench
     aliases:
@@ -366,7 +375,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 5.3737
     observer_y: -5.5167
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_22:
     label: bench
     aliases:
@@ -383,7 +392,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 16.3921
     observer_y: -7.3265
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_23:
     label: bench
     aliases:
@@ -400,7 +409,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 14.4114
     observer_y: 8.9436
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_24:
     label: bench
     aliases:
@@ -417,7 +426,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -0.6961
     observer_y: 5.2848
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_25:
     label: bench
     aliases:
@@ -434,7 +443,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 14.0143
     observer_y: -3.1917
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_26:
     label: bench
     aliases:
@@ -451,7 +460,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 13.5522
     observer_y: -7.5436
-    place_id: room_candidate_3
+    place_id: room_candidate_2
   bench_27:
     label: bench
     aliases:
@@ -468,7 +477,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -3.0571
     observer_y: 2.5771
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_28:
     label: bench
     aliases:
@@ -485,7 +494,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -3.6098
     observer_y: -8.4827
-    place_id: room_candidate_3
+    place_id: main_hall
   bench_29:
     label: bench
     aliases:
@@ -502,7 +511,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 5.527
     observer_y: 11.0427
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_1:
     label: chair
     aliases:
@@ -519,7 +528,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 19.4222
     observer_y: -14.0203
-    place_id: room_candidate_6
+    place_id: room_candidate_3
   chair_2:
     label: chair
     aliases:
@@ -536,7 +545,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 19.6187
     observer_y: -14.4146
-    place_id: room_candidate_6
+    place_id: room_candidate_3
   chair_3:
     label: chair
     aliases:
@@ -553,7 +562,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.2532
     observer_y: 8.4321
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_4:
     label: chair
     aliases:
@@ -570,7 +579,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.248
     observer_y: -0.9615
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_5:
     label: chair
     aliases:
@@ -587,7 +596,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 19.3525
     observer_y: -13.9372
-    place_id: room_candidate_9
+    place_id: room_candidate_3
   chair_6:
     label: chair
     aliases:
@@ -604,7 +613,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.5642
     observer_y: 8.3209
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_7:
     label: chair
     aliases:
@@ -621,7 +630,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 21.8896
     observer_y: -8.5628
-    place_id: room_candidate_8
+    place_id: room_candidate_2
   chair_8:
     label: chair
     aliases:
@@ -638,7 +647,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 3.6698
     observer_y: -1.6995
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_9:
     label: chair
     aliases:
@@ -655,7 +664,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 6.7578
     observer_y: 1.8372
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_10:
     label: chair
     aliases:
@@ -672,7 +681,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 4.4584
     observer_y: -3.8726
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_11:
     label: chair
     aliases:
@@ -689,7 +698,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 20.4262
     observer_y: -11.0294
-    place_id: corridor_candidate_2
+    place_id: room_candidate_3
   chair_12:
     label: chair
     aliases:
@@ -706,7 +715,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 6.3402
     observer_y: -1.8263
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_13:
     label: chair
     aliases:
@@ -723,7 +732,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 5.715
     observer_y: 3.2081
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_14:
     label: chair
     aliases:
@@ -740,7 +749,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 3.6893
     observer_y: -0.7678
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_15:
     label: chair
     aliases:
@@ -757,7 +766,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 3.7519
     observer_y: 7.3487
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_16:
     label: chair
     aliases:
@@ -774,7 +783,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 5.9171
     observer_y: -9.7849
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_17:
     label: chair
     aliases:
@@ -791,7 +800,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 7.2381
     observer_y: -5.2381
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_18:
     label: chair
     aliases:
@@ -808,7 +817,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 1.1235
     observer_y: -2.2073
-    place_id: room_candidate_3
+    place_id: main_hall
   chair_19:
     label: chair
     aliases:
@@ -825,7 +834,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -0.8832
     observer_y: -9.114
-    place_id: room_candidate_1
+    place_id: main_hall
   chair_20:
     label: chair
     aliases:
@@ -842,7 +851,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.0074
     observer_y: 11.1013
-    place_id: room_candidate_3
+    place_id: main_hall
   couch_1:
     label: couch
     aliases:
@@ -860,7 +869,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 16.2244
     observer_y: -7.4549
-    place_id: room_candidate_3
+    place_id: room_candidate_2
   dining_table_1:
     label: dining table
     aliases:
@@ -880,7 +889,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.9761
     observer_y: 16.405
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_2:
     label: dining table
     aliases:
@@ -900,7 +909,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.4206
     observer_y: 20.6304
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_3:
     label: dining table
     aliases:
@@ -920,7 +929,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.5656
     observer_y: 22.2994
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_4:
     label: dining table
     aliases:
@@ -940,7 +949,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.2464
     observer_y: 19.3538
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_5:
     label: dining table
     aliases:
@@ -960,7 +969,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.0221
     observer_y: 16.9694
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_6:
     label: dining table
     aliases:
@@ -980,7 +989,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.8338
     observer_y: 11.7948
-    place_id: room_candidate_3
+    place_id: main_hall
   dining_table_7:
     label: dining table
     aliases:
@@ -1000,7 +1009,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 18.4629
     observer_y: 10.2538
-    place_id: room_candidate_3
+    place_id: main_hall
   dining_table_8:
     label: dining table
     aliases:
@@ -1020,7 +1029,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.6093
     observer_y: 24.7101
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_9:
     label: dining table
     aliases:
@@ -1040,7 +1049,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.9695
     observer_y: 13.1237
-    place_id: room_candidate_3
+    place_id: main_hall
   dining_table_10:
     label: dining table
     aliases:
@@ -1060,7 +1069,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 11.0915
     observer_y: 17.615
-    place_id: room_candidate_3
+    place_id: corridor_candidate_1
   dining_table_11:
     label: dining table
     aliases:
@@ -1080,7 +1089,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.2284
     observer_y: 24.9508
-    place_id: room_candidate_3
+    place_id: room_candidate_1
   dining_table_12:
     label: dining table
     aliases:
@@ -1100,7 +1109,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 19.3944
     observer_y: 10.1699
-    place_id: room_candidate_3
+    place_id: corridor_candidate_2
   dining_table_13:
     label: dining table
     aliases:
@@ -1120,7 +1129,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.8841
     observer_y: 18.2143
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_1:
     label: potted plant
     aliases:
@@ -1139,7 +1148,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.7636
     observer_y: -3.0394
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_2:
     label: potted plant
     aliases:
@@ -1158,7 +1167,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 17.033
     observer_y: -7.6811
-    place_id: room_candidate_3
+    place_id: room_candidate_2
   potted_plant_3:
     label: potted plant
     aliases:
@@ -1177,6 +1186,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -3.4663
     observer_y: -2.8158
+    place_id: main_hall
   potted_plant_4:
     label: potted plant
     aliases:
@@ -1195,7 +1205,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -2.1368
     observer_y: 1.1107
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_5:
     label: potted plant
     aliases:
@@ -1214,7 +1224,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.9588
     observer_y: 7.958
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_6:
     label: potted plant
     aliases:
@@ -1233,6 +1243,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -2.6872
     observer_y: -8.7063
+    place_id: main_hall
   potted_plant_7:
     label: potted plant
     aliases:
@@ -1251,7 +1262,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -0.1577
     observer_y: -0.8446
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_8:
     label: potted plant
     aliases:
@@ -1270,7 +1281,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 4.6136
     observer_y: -5.3131
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_9:
     label: potted plant
     aliases:
@@ -1289,7 +1300,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.2458
     observer_y: 0.9172
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_10:
     label: potted plant
     aliases:
@@ -1308,7 +1319,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -0.8832
     observer_y: -9.114
-    place_id: room_candidate_1
+    place_id: main_hall
   potted_plant_11:
     label: potted plant
     aliases:
@@ -1327,7 +1338,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 7.7355
     observer_y: -4.7227
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_12:
     label: potted plant
     aliases:
@@ -1346,7 +1357,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 1.3941
     observer_y: 10.2632
-    place_id: room_candidate_2
+    place_id: main_hall
   potted_plant_13:
     label: potted plant
     aliases:
@@ -1365,7 +1376,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.7318
     observer_y: 9.9601
-    place_id: corridor_candidate_1
+    place_id: main_hall
   potted_plant_14:
     label: potted plant
     aliases:
@@ -1384,7 +1395,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 8.7365
     observer_y: -2.051
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_15:
     label: potted plant
     aliases:
@@ -1403,7 +1414,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.2672
     observer_y: 8.9367
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_16:
     label: potted plant
     aliases:
@@ -1422,7 +1433,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.919
     observer_y: -9.3643
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_17:
     label: potted plant
     aliases:
@@ -1441,7 +1452,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -2.0074
     observer_y: 8.1625
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_18:
     label: potted plant
     aliases:
@@ -1460,7 +1471,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -3.3824
     observer_y: -1.4031
-    place_id: room_candidate_3
+    place_id: main_hall
   potted_plant_19:
     label: potted plant
     aliases:
@@ -1479,7 +1490,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 3.6475
     observer_y: 6.3643
-    place_id: room_candidate_3
+    place_id: main_hall
   refrigerator_1:
     label: refrigerator
     aliases:
@@ -1496,7 +1507,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 4.4056
     observer_y: 2.0672
-    place_id: room_candidate_3
+    place_id: main_hall
   tv_1:
     label: tv
     aliases:
@@ -1516,7 +1527,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.0316
     observer_y: 5.4827
-    place_id: room_candidate_4
+    place_id: main_hall
   tv_2:
     label: tv
     aliases:
@@ -1536,7 +1547,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.2472
     observer_y: 3.9939
-    place_id: room_candidate_3
+    place_id: main_hall
   tv_3:
     label: tv
     aliases:
@@ -1556,7 +1567,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 10.5591
     observer_y: 24.3297
-    place_id: room_candidate_3
+    place_id: room_candidate_1
   vase_1:
     label: vase
     aliases:
@@ -1573,7 +1584,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 7.2246
     observer_y: 10.1382
-    place_id: room_candidate_3
+    place_id: main_hall
   vase_2:
     label: vase
     aliases:
@@ -1590,7 +1601,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 8.2336
     observer_y: -5.4522
-    place_id: room_candidate_3
+    place_id: main_hall
   vase_3:
     label: vase
     aliases:
@@ -1607,6 +1618,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -3.3436
     observer_y: -2.1115
+    place_id: main_hall
   vase_4:
     label: vase
     aliases:
@@ -1623,7 +1635,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 1.0687
     observer_y: 10.6135
-    place_id: room_candidate_2
+    place_id: main_hall
   vase_5:
     label: vase
     aliases:
@@ -1640,7 +1652,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 0.4608
     observer_y: 10.18
-    place_id: room_candidate_2
+    place_id: main_hall
   vase_6:
     label: vase
     aliases:
@@ -1657,7 +1669,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 1.0516
     observer_y: -6.2898
-    place_id: room_candidate_3
+    place_id: main_hall
   vase_7:
     label: vase
     aliases:
@@ -1674,7 +1686,7 @@ objects:
     source: offline_yolo_builder
     observer_x: 18.0746
     observer_y: -8.0087
-    place_id: room_candidate_8
+    place_id: room_candidate_2
   vase_8:
     label: vase
     aliases:
@@ -1691,7 +1703,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.0559
     observer_y: 0.3417
-    place_id: room_candidate_3
+    place_id: main_hall
   vase_9:
     label: vase
     aliases:
@@ -1708,7 +1720,7 @@ objects:
     source: offline_yolo_builder
     observer_x: -2.2675
     observer_y: 1.0082
-    place_id: room_candidate_3
+    place_id: main_hall
   vase_10:
     label: vase
     aliases:
@@ -1725,1044 +1737,331 @@ objects:
     source: offline_yolo_builder
     observer_x: -1.9767
     observer_y: 10.3453
-    place_id: corridor_candidate_1
+    place_id: main_hall
 places:
-  corridor_candidate_1:
-    label: corridor
+  main_hall:
+    label: hall
     aliases: []
     frame_id: map
     polygon:
-    - - -3.105
-      - 10.925
-    - - -2.055
-      - 10.575
-    - - -0.555
-      - 11.075
-    - - -0.205
-      - 10.425
-    - - 0.245
-      - 11.425
-    - - -3.055
-      - 11.425
-    centroid_x: -1.5172
-    centroid_y: 11.0901
-    area_m2: 2.0575
-    confidence: 0.2145
-    source: auto_occupancy_watershed
-    enabled: true
-  corridor_candidate_2:
-    label: corridor
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 20.495
-      - -11.175
-    - - 20.995
-      - -11.575
-    - - 21.395
-      - -11.175
-    - - 23.595
-      - -11.475
-    - - 23.195
+    - - 10.995
+      - 16.625
+    - - 9.645
+      - 15.275
+    - - 9.645
+      - 11.875
+    - - -3.805
+      - 11.875
+    - - -5.155
+      - 10.625
+    - - -4.555
+      - 8.025
+    - - -5.505
+      - 7.725
+    - - -5.405
+      - 5.075
+    - - -4.555
+      - 5.025
+    - - -4.555
+      - 3.975
+    - - -5.455
+      - 3.875
+    - - -5.505
+      - 1.325
+    - - -4.555
+      - 1.025
+    - - -4.505
+      - -0.025
+    - - -5.405
+      - -0.275
+    - - -5.555
+      - -2.625
+    - - -4.555
+      - -2.975
+    - - -4.505
+      - -3.975
+    - - -5.155
+      - -4.375
+    - - -4.105
+      - -5.425
+    - - -3.855
+      - -6.525
+    - - -4.505
+      - -7.225
+    - - -5.555
+      - -10.325
+    - - -4.555
+      - -10.925
+    - - -4.055
+      - -11.825
+    - - -1.805
+      - -11.425
+    - - -1.705
       - -10.825
-    - - 20.645
-      - -10.725
-    centroid_x: 21.9489
-    centroid_y: -11.0731
-    area_m2: 1.5738
-    confidence: 0.1263
-    source: auto_occupancy_watershed
+    - - -1.355
+      - -10.875
+    - - -1.705
+      - -10.975
+    - - -1.455
+      - -11.625
+    - - 0.245
+      - -11.425
+    - - 0.445
+      - -10.825
+    - - 0.445
+      - -11.575
+    - - 1.695
+      - -11.725
+    - - 1.645
+      - -12.175
+    - - 2.095
+      - -11.925
+    - - 1.995
+      - -12.375
+    - - 3.295
+      - -13.575
+    - - 4.745
+      - -12.475
+    - - 4.495
+      - -11.975
+    - - 5.295
+      - -11.925
+    - - 5.345
+      - -12.475
+    - - 5.345
+      - -11.875
+    - - 6.445
+      - -11.375
+    - - 11.945
+      - -11.475
+    - - 12.745
+      - -11.025
+    - - 12.845
+      - -10.275
+    - - 14.395
+      - -10.475
+    - - 14.445
+      - -9.575
+    - - 16.445
+      - -10.525
+    - - 17.345
+      - -9.625
+    - - 17.345
+      - -8.375
+    - - 17.645
+      - -8.275
+    - - 17.745
+      - -8.725
+    - - 18.695
+      - -7.325
+    - - 17.695
+      - -6.325
+    - - 15.345
+      - -6.025
+    - - 15.345
+      - -2.975
+    - - 15.895
+      - -2.825
+    - - 15.895
+      - -0.075
+    - - 15.345
+      - 0.025
+    - - 15.345
+      - 6.075
+    - - 16.245
+      - 6.225
+    - - 16.645
+      - 8.025
+    - - 16.295
+      - 8.075
+    - - 16.595
+      - 8.425
+    - - 16.245
+      - 8.925
+    - - 15.445
+      - 8.975
+    - - 15.295
+      - 9.525
+    - - 15.595
+      - 9.625
+    - - 15.745
+      - 9.175
+    - - 16.645
+      - 10.525
+    - - 15.245
+      - 11.925
+    - - 12.345
+      - 11.925
+    - - 12.295
+      - 15.325
+    centroid_x: 5.5976
+    centroid_y: 0.3962
+    area_m2: 502.8112
+    confidence: 0.85
+    source: auto_occupancy_hall_core
     enabled: true
   room_candidate_1:
     label: room
     aliases: []
     frame_id: map
     polygon:
-    - - -0.455
-      - -7.925
-    - - -0.755
-      - -8.975
-    - - 0.345
-      - -9.775
-    - - 0.395
-      - -8.175
-    - - -0.255
-      - -8.325
-    centroid_x: -0.0974
-    centroid_y: -8.8317
-    area_m2: 1.2387
-    confidence: 0.1075
-    source: auto_occupancy_watershed
+    - - 12.245
+      - 26.925
+    - - 7.145
+      - 26.825
+    - - 7.145
+      - 24.175
+    - - 9.495
+      - 24.275
+    - - 9.645
+      - 22.425
+    - - 12.295
+      - 22.725
+    centroid_x: 10.0071
+    centroid_y: 25.015
+    area_m2: 18.0487
+    confidence: 0.7
+    source: auto_occupancy_hall_core
+    enabled: true
+  corridor_candidate_1:
+    label: corridor
+    aliases: []
+    frame_id: map
+    polygon:
+    - - 12.295
+      - 22.675
+    - - 9.645
+      - 22.375
+    - - 9.645
+      - 15.375
+    - - 10.995
+      - 16.675
+    - - 12.345
+      - 15.625
+    centroid_x: 10.9833
+    centroid_y: 19.2884
+    area_m2: 17.2125
+    confidence: 0.7
+    source: auto_occupancy_hall_core
+    enabled: true
+  corridor_candidate_2:
+    label: corridor
+    aliases: []
+    frame_id: map
+    polygon:
+    - - 21.345
+      - 12.675
+    - - 20.195
+      - 12.425
+    - - 19.895
+      - 11.975
+    - - 19.545
+      - 12.875
+    - - 18.645
+      - 12.875
+    - - 19.145
+      - 11.775
+    - - 19.545
+      - 11.725
+    - - 18.595
+      - 11.325
+    - - 18.345
+      - 11.925
+    - - 16.745
+      - 11.925
+    - - 16.395
+      - 11.525
+    - - 15.645
+      - 11.875
+    - - 16.695
+      - 10.525
+    - - 15.795
+      - 9.175
+    - - 18.345
+      - 9.275
+    - - 18.545
+      - 9.825
+    - - 19.545
+      - 9.575
+    - - 19.045
+      - 9.175
+    - - 21.345
+      - 9.275
+    centroid_x: 18.9366
+    centroid_y: 10.7681
+    area_m2: 14.4212
+    confidence: 0.7
+    source: auto_occupancy_hall_core
     enabled: true
   room_candidate_2:
     label: room
     aliases: []
     frame_id: map
     polygon:
-    - - 0.845
-      - 11.225
-    - - 0.745
-      - 10.625
-    - - 0.395
-      - 10.575
-    - - 0.595
-      - 9.725
-    - - 1.345
-      - 9.075
-    - - 1.945
-      - 9.175
-    - - 1.945
-      - 9.925
-    - - 1.295
-      - 10.375
-    - - 1.445
-      - 11.275
-    centroid_x: 1.1875
-    centroid_y: 10.0743
-    area_m2: 1.9712
-    confidence: 0.1855
-    source: auto_occupancy_watershed
+    - - 17.645
+      - -6.075
+    - - 18.745
+      - -7.325
+    - - 17.645
+      - -8.675
+    - - 17.645
+      - -9.825
+    - - 23.345
+      - -10.175
+    - - 24.295
+      - -9.775
+    - - 24.395
+      - -6.975
+    - - 23.545
+      - -6.975
+    - - 23.445
+      - -6.125
+    centroid_x: 21.1105
+    centroid_y: -8.1347
+    area_m2: 23.92
+    confidence: 0.7
+    source: auto_occupancy_hall_core
     enabled: true
   room_candidate_3:
     label: room
     aliases: []
     frame_id: map
     polygon:
-    - - 9.845
-      - 26.625
-    - - 9.045
-      - 26.575
-    - - 8.845
-      - 25.075
-    - - 8.545
-      - 24.975
-    - - 8.895
-      - 24.425
-    - - 8.945
-      - 24.975
-    - - 9.445
-      - 24.975
-    - - 9.645
-      - 24.525
-    - - 9.645
-      - 25.025
-    - - 10.195
-      - 25.075
-    - - 10.245
-      - 24.525
-    - - 9.795
-      - 24.475
-    - - 10.595
-      - 24.175
-    - - 10.545
-      - 23.625
-    - - 9.895
-      - 23.575
-    - - 9.995
-      - 22.375
-    - - 10.395
-      - 22.225
-    - - 10.095
-      - 21.675
-    - - 10.595
-      - 21.625
-    - - 10.595
-      - 20.425
-    - - 9.995
-      - 19.925
-    - - 9.995
-      - 11.625
-    - - 8.495
-      - 11.225
-    - - 8.395
-      - 11.675
-    - - 8.195
-      - 10.975
-    - - 7.545
-      - 10.975
-    - - 7.445
-      - 11.425
-    - - 4.695
-      - 11.125
-    - - 6.745
-      - 11.025
-    - - 6.745
-      - 10.525
-    - - 6.195
-      - 10.475
-    - - 6.495
-      - 8.925
-    - - 6.145
-      - 8.375
-    - - 4.795
-      - 8.425
-    - - 4.845
-      - 9.075
-    - - 5.445
-      - 8.975
-    - - 5.445
-      - 10.225
-    - - 4.845
-      - 10.275
-    - - 4.745
-      - 9.675
-    - - 3.145
-      - 10.125
-    - - 3.395
-      - 9.575
-    - - 3.095
-      - 9.025
-    - - 3.695
-      - 9.075
-    - - 3.645
-      - 8.375
-    - - 1.345
-      - 8.375
-    - - 1.295
-      - 8.825
-    - - 0.745
-      - 9.075
-    - - -0.455
-      - 8.975
-    - - 0.045
-      - 8.775
-    - - -0.005
-      - 8.225
-    - - -1.005
-      - 8.525
-    - - -1.155
-      - 7.825
-    - - -1.955
-      - 7.775
-    - - -2.505
-      - 9.125
-    - - -2.905
-      - 8.975
-    - - -2.955
-      - 8.275
-    - - -3.905
-      - 8.175
-    - - -3.955
-      - 6.925
-    - - -3.455
-      - 6.925
-    - - -3.405
-      - 6.425
-    - - -3.205
-      - 6.925
-    - - -3.855
-      - 6.975
-    - - -3.805
-      - 7.725
-    - - -3.105
-      - 7.725
-    - - -2.605
-      - 6.575
-    - - -1.505
-      - 6.975
-    - - -0.805
-      - 8.075
-    - - -0.305
-      - 8.075
-    - - -0.255
-      - 7.575
-    - - 0.995
-      - 7.975
-    - - 0.695
-      - 7.175
-    - - 1.445
-      - 7.075
-    - - 1.295
-      - 5.825
-    - - 0.345
-      - 5.775
-    - - 0.045
-      - 4.875
-    - - 0.645
-      - 4.725
-    - - 0.595
-      - 4.175
-    - - -0.205
-      - 4.175
-    - - -0.555
-      - 4.575
-    - - -0.605
-      - 5.725
-    - - -1.205
-      - 5.725
-    - - -0.755
-      - 5.625
-    - - -0.755
-      - 5.125
-    - - -1.255
-      - 5.075
-    - - -1.055
-      - 4.425
-    - - -1.555
-      - 4.425
-    - - -1.955
-      - 5.075
-    - - -2.755
-      - 4.725
-    - - -2.355
-      - 4.525
-    - - -2.405
-      - 3.975
-    - - -2.905
-      - 3.975
-    - - -2.955
-      - 4.475
-    - - -3.905
-      - 4.375
-    - - -3.455
-      - 3.025
-    - - -3.355
-      - 3.775
-    - - -1.655
-      - 4.075
-    - - -1.405
-      - 2.975
-    - - -0.905
-      - 2.675
-    - - -1.255
-      - 1.775
-    - - -2.505
-      - 1.575
-    - - -2.255
-      - 0.925
-    - - -3.305
-      - 1.175
-    - - -3.555
-      - 0.625
-    - - -3.305
-      - -0.025
-    - - -2.355
-      - -0.675
-    - - -2.205
-      - -0.225
-    - - -1.405
-      - -0.125
-    - - -1.305
-      - 0.275
-    - - -1.855
-      - 0.325
-    - - -1.805
-      - 0.875
-    - - -0.755
-      - 0.825
-    - - -0.905
-      - -0.675
-    - - -1.405
-      - -0.925
-    - - -0.155
-      - -0.625
-    - - 0.095
-      - -1.225
-    - - 0.645
-      - -1.225
-    - - 0.695
-      - -0.775
-    - - 1.195
-      - -0.775
-    - - 1.245
-      - -1.325
-    - - 0.745
-      - -1.375
-    - - 0.795
-      - -1.725
-    - - 1.945
-      - -1.775
-    - - 1.945
-      - -1.325
-    - - 1.245
-      - -1.325
-    - - 1.345
-      - -0.575
-    - - 0.295
-      - -0.125
-    - - 0.345
-      - 0.425
-    - - 0.945
-      - 0.425
-    - - -0.055
-      - 1.025
-    - - 0.195
-      - 2.025
-    - - 0.695
-      - 2.025
-    - - 0.795
-      - 1.575
-    - - 0.995
-      - 1.975
-    - - 1.945
-      - 1.975
-    - - 2.095
-      - 3.325
-    - - 1.545
-      - 3.375
-    - - 1.445
-      - 4.125
-    - - 2.395
-      - 4.325
-    - - 2.645
-      - 4.875
-    - - 4.945
-      - 4.825
-    - - 4.645
-      - 3.275
-    - - 3.895
-      - 3.075
-    - - 3.445
-      - 2.425
-    - - 3.495
-      - 1.325
-    - - 4.095
-      - 1.425
-    - - 3.995
-      - 0.725
-    - - 3.445
-      - 1.025
-    - - 3.445
-      - -0.175
-    - - 4.395
-      - -0.275
-    - - 3.895
-      - 0.075
-    - - 3.895
-      - 0.575
-    - - 4.345
-      - 0.625
-    - - 4.295
-      - 1.825
-    - - 3.795
-      - 1.875
-    - - 3.845
-      - 2.425
-    - - 4.445
-      - 2.375
-    - - 5.045
-      - 3.125
-    - - 5.595
-      - 3.125
-    - - 6.195
-      - 2.325
-    - - 6.295
-      - -2.125
-    - - 5.745
-      - -2.375
-    - - 5.645
-      - -2.875
-    - - 5.145
-      - -2.875
-    - - 5.095
-      - -2.425
-    - - 4.995
-      - -2.875
-    - - 4.495
-      - -2.875
-    - - 3.445
-      - -0.775
-    - - 3.495
-      - -2.425
-    - - 4.695
-      - -3.225
-    - - 4.695
-      - -4.575
-    - - 3.395
-      - -4.525
-    - - 3.345
-      - -4.875
-    - - 2.345
-      - -4.975
-    - - 2.345
-      - -6.125
-    - - 2.745
-      - -6.175
-    - - 2.595
-      - -7.175
-    - - 3.045
-      - -7.375
-    - - 3.295
-      - -6.925
-    - - 3.795
-      - -6.925
-    - - 3.845
-      - -7.475
-    - - 2.845
-      - -8.425
-    - - 2.195
-      - -8.175
-    - - 2.295
-      - -9.125
-    - - 1.395
-      - -9.175
-    - - 1.445
-      - -9.725
-    - - 0.945
-      - -9.975
-    - - 0.995
-      - -10.275
-    - - 1.745
-      - -10.275
-    - - 1.495
-      - -9.425
-    - - 2.295
-      - -9.425
-    - - 2.395
-      - -10.275
-    - - 3.195
-      - -10.775
-    - - 4.395
-      - -10.125
-    - - 4.795
-      - -10.975
-    - - 5.245
-      - -10.975
-    - - 5.695
-      - -10.225
-    - - 5.545
-      - -9.625
-    - - 7.595
-      - -9.675
-    - - 8.045
-      - -8.925
-    - - 8.595
-      - -8.975
-    - - 8.545
-      - -9.525
-    - - 7.645
-      - -9.775
-    - - 8.045
-      - -10.525
-    - - 8.045
-      - -9.975
-    - - 8.845
-      - -9.375
-    - - 10.045
-      - -9.475
-    - - 9.495
-      - -9.225
-    - - 9.545
-      - -8.675
-    - - 10.345
-      - -8.775
-    - - 11.245
-      - -8.075
-    - - 11.845
-      - -8.275
-    - - 11.495
-      - -7.375
-    - - 11.995
-      - -7.375
-    - - 12.445
-      - -8.125
-    - - 13.845
-      - -8.525
-    - - 15.095
-      - -8.225
-    - - 15.195
-      - -7.875
-    - - 16.195
-      - -8.325
-    - - 16.095
-      - -7.675
-    - - 17.195
-      - -8.025
-    - - 17.095
-      - -7.025
-    - - 16.595
-      - -6.875
-    - - 16.545
-      - -7.425
-    - - 15.995
-      - -7.375
-    - - 16.145
-      - -6.675
-    - - 15.245
-      - -7.075
-    - - 14.395
-      - -4.875
-    - - 14.395
-      - -5.575
-    - - 13.845
-      - -5.625
-    - - 13.545
-      - -4.975
-    - - 12.995
-      - -4.925
-    - - 12.995
-      - -4.425
-    - - 13.395
-      - -4.325
-    - - 12.645
-      - -4.575
-    - - 12.995
-      - -5.525
-    - - 12.245
-      - -6.025
-    - - 11.695
-      - -5.975
-    - - 11.445
-      - -4.775
-    - - 11.595
-      - -5.525
-    - - 10.445
-      - -6.425
-    - - 10.445
-      - -6.775
-    - - 10.995
-      - -6.825
-    - - 10.945
-      - -7.375
-    - - 10.445
-      - -7.375
-    - - 10.395
-      - -6.875
-    - - 9.595
-      - -7.275
-    - - 9.545
-      - -6.775
-    - - 9.045
-      - -6.725
-    - - 8.495
-      - -8.075
-    - - 7.945
-      - -8.125
-    - - 8.295
-      - -5.575
-    - - 7.445
-      - -7.275
-    - - 6.895
-      - -7.325
-    - - 7.045
-      - -6.275
-    - - 6.495
-      - -6.425
-    - - 6.445
-      - -5.875
-    - - 7.345
-      - -5.525
-    - - 6.645
-      - -4.925
-    - - 5.695
-      - -4.775
-    - - 5.895
-      - -3.175
-    - - 7.095
-      - -2.375
-    - - 7.095
-      - 0.375
-    - - 6.645
-      - 0.425
-    - - 6.645
-      - 0.925
-    - - 7.095
-      - 0.975
-    - - 7.095
-      - 2.375
-    - - 6.645
-      - 3.075
-    - - 5.895
-      - 3.275
-    - - 5.545
-      - 4.825
-    - - 6.195
-      - 4.925
-    - - 6.245
-      - 5.475
-    - - 8.095
-      - 5.975
-    - - 8.445
-      - 6.675
-    - - 8.195
-      - 7.375
-    - - 7.495
-      - 7.375
-    - - 7.545
-      - 7.925
-    - - 8.145
-      - 7.975
-    - - 8.095
-      - 8.375
-    - - 7.445
-      - 8.075
-    - - 7.195
-      - 8.925
-    - - 7.645
-      - 9.075
-    - - 7.395
-      - 9.775
-    - - 8.595
-      - 10.175
-    - - 8.845
-      - 9.025
-    - - 8.245
-      - 8.975
-    - - 8.795
-      - 8.975
-    - - 8.845
-      - 8.575
-    - - 9.545
-      - 9.025
-    - - 11.295
-      - 8.775
-    - - 11.595
-      - 7.775
-    - - 11.995
-      - 8.425
-    - - 11.745
-      - 9.075
-    - - 13.145
-      - 8.825
-    - - 13.245
-      - 7.825
-    - - 15.195
-      - 10.075
-    - - 15.695
-      - 10.075
-    - - 15.895
-      - 9.425
-    - - 18.095
-      - 9.525
-    - - 18.245
-      - 9.975
-    - - 18.095
-      - 11.675
-    - - 15.095
-      - 11.225
-    - - 15.045
-      - 11.675
-    - - 13.895
-      - 11.475
-    - - 13.845
-      - 11.075
-    - - 12.745
-      - 11.575
-    - - 12.645
-      - 11.175
-    - - 12.095
-      - 11.225
-    - - 11.945
-      - 12.575
-    - - 11.595
-      - 12.675
-    - - 11.895
-      - 13.275
-    - - 11.745
-      - 15.375
-    - - 11.395
-      - 15.425
-    - - 11.395
-      - 15.925
-    - - 11.995
-      - 16.325
-    - - 11.995
-      - 23.725
-    - - 10.745
-      - 23.575
-    - - 10.795
-      - 24.125
-    - - 11.845
-      - 24.325
-    - - 11.395
-      - 24.675
-    - - 11.345
-      - 24.275
-    - - 10.545
-      - 24.475
-    - - 11.145
-      - 25.925
-    - - 10.945
-      - 26.275
-    - - 10.945
-      - 25.775
-    - - 10.395
-      - 25.725
-    centroid_x: 7.0278
-    centroid_y: 4.2354
-    area_m2: 160.3963
-    confidence: 1.0
-    source: auto_occupancy_watershed
-    enabled: true
-  room_candidate_4:
-    label: room
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 6.295
-      - 4.875
-    - - 7.595
-      - 4.625
-    - - 8.795
-      - 3.175
-    - - 8.895
-      - 3.675
-    - - 9.895
-      - 3.975
-    - - 9.945
-      - 3.425
-    - - 9.245
-      - 3.075
-    - - 9.345
-      - 2.675
-    - - 9.545
-      - 3.125
-    - - 10.045
-      - 3.125
-    - - 10.495
-      - 2.475
-    - - 10.995
-      - 2.475
-    - - 10.895
-      - 1.825
-    - - 11.345
-      - 1.775
-    - - 11.445
-      - 0.725
-    - - 12.345
-      - 0.775
-    - - 12.745
-      - 0.275
-    - - 12.795
-      - 0.725
-    - - 13.945
-      - 0.825
-    - - 14.495
-      - 0.025
-    - - 14.495
-      - 2.575
-    - - 14.045
-      - 2.125
-    - - 12.945
-      - 2.275
-    - - 12.695
-      - 1.725
-    - - 13.145
-      - 1.675
-    - - 13.195
-      - 0.875
-    - - 12.645
-      - 0.825
-    - - 12.545
-      - 1.675
-    - - 12.095
-      - 1.875
-    - - 12.045
-      - 1.425
-    - - 11.495
-      - 1.475
-    - - 11.795
-      - 2.425
-    - - 11.295
-      - 2.475
-    - - 11.295
-      - 2.975
-    - - 11.745
-      - 3.025
-    - - 11.495
-      - 3.725
-    - - 10.045
-      - 3.575
-    - - 10.245
-      - 4.425
-    - - 10.745
-      - 4.425
-    - - 10.895
-      - 4.025
-    - - 10.895
-      - 4.425
-    - - 11.645
-      - 4.875
-    - - 11.345
-      - 5.525
-    - - 11.195
-      - 5.125
-    - - 10.695
-      - 5.125
-    - - 10.545
-      - 5.575
-    - - 8.245
-      - 5.025
-    - - 8.195
-      - 5.675
-    - - 7.545
-      - 4.875
-    centroid_x: 10.9252
-    centroid_y: 3.1933
-    area_m2: 10.8012
-    confidence: 1.0
-    source: auto_occupancy_watershed
-    enabled: true
-  room_candidate_5:
-    label: room
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 15.245
-      - 8.475
-    - - 13.495
-      - 7.475
-    - - 14.545
-      - 6.725
-    - - 14.545
-      - 6.225
-    - - 14.195
-      - 6.125
-    - - 15.245
-      - 6.375
-    - - 14.995
-      - 6.975
-    - - 15.645
-      - 7.425
-    centroid_x: 14.7251
-    centroid_y: 7.3938
-    area_m2: 2.2688
-    confidence: 0.2435
-    source: auto_occupancy_watershed
-    enabled: true
-  room_candidate_6:
-    label: room
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 19.895
-      - -11.025
-    - - 19.295
-      - -11.325
-    - - 18.945
-      - -10.825
-    - - 18.945
-      - -11.575
-    - - 18.345
-      - -11.675
-    - - 18.695
-      - -12.325
-    - - 18.395
-      - -12.875
+    - - 17.645
+      - -9.875
+    - - 17.695
+      - -10.175
+    - - 19.095
+      - -10.475
     - - 18.645
-      - -13.975
-    - - 19.095
-      - -13.975
-    - - 18.995
-      - -13.175
-    - - 19.945
-      - -12.575
-    centroid_x: 19.15
-    centroid_y: -12.335
-    area_m2: 2.7925
-    confidence: 0.2695
-    source: auto_occupancy_watershed
-    enabled: true
-  room_candidate_7:
-    label: room
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 20.345
-      - 11.725
-    - - 19.045
-      - 11.125
-    - - 19.095
-      - 9.975
+      - -10.575
+    - - 18.595
+      - -11.425
+    - - 18.095
+      - -11.325
+    - - 18.195
+      - -14.725
+    - - 22.795
+      - -14.675
+    - - 23.095
+      - -14.025
+    - - 24.345
+      - -13.875
+    - - 24.295
+      - -10.975
+    - - 23.495
+      - -10.975
+    - - 23.445
+      - -10.475
+    - - 19.345
+      - -10.525
+    - - 19.595
+      - -10.175
     - - 19.295
-      - 10.425
-    - - 19.795
-      - 10.425
-    - - 19.845
-      - 9.975
-    - - 20.345
-      - 10.225
-    centroid_x: 19.7783
-    centroid_y: 10.8417
-    area_m2: 1.5125
-    confidence: 0.141
-    source: auto_occupancy_watershed
-    enabled: true
-  room_candidate_8:
-    label: room
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 17.845
-      - -6.625
-    - - 17.995
-      - -8.375
-    - - 19.445
-      - -8.525
-    - - 19.495
-      - -9.075
-    - - 19.145
-      - -9.125
-    - - 19.745
-      - -9.475
-    - - 20.795
-      - -8.125
-    - - 21.295
-      - -8.125
-    - - 21.395
-      - -9.725
-    - - 20.745
-      - -9.925
-    - - 22.995
-      - -9.925
-    - - 22.345
-      - -9.725
-    - - 22.345
-      - -9.225
-    - - 22.895
-      - -9.075
-    - - 22.595
-      - -8.675
-    - - 22.195
-      - -8.725
-    - - 22.145
-      - -9.175
-    - - 21.445
-      - -8.925
-    - - 21.745
-      - -7.625
-    - - 21.095
-      - -7.625
-    - - 21.045
-      - -7.175
-    - - 18.995
-      - -7.175
-    - - 18.495
-      - -6.325
-    centroid_x: 19.9829
-    centroid_y: -8.1197
-    area_m2: 6.9375
-    confidence: 0.6858
-    source: auto_occupancy_watershed
-    enabled: true
-  room_candidate_9:
-    label: room
-    aliases: []
-    frame_id: map
-    polygon:
-    - - 24.045
-      - -11.675
-    - - 23.795
-      - -13.275
-    - - 22.795
-      - -13.325
-    - - 22.745
-      - -13.775
-    - - 21.595
-      - -13.775
-    - - 21.445
-      - -14.325
-    - - 20.845
-      - -14.425
-    - - 22.795
-      - -14.275
-    - - 22.845
-      - -13.775
-    - - 24.045
-      - -13.625
-    centroid_x: 22.8287
-    centroid_y: -13.6804
-    area_m2: 1.4537
-    confidence: 0.1628
-    source: auto_occupancy_watershed
+      - -9.875
+    centroid_x: 21.0499
+    centroid_y: -12.4997
+    area_m2: 24.9463
+    confidence: 0.7
+    source: auto_occupancy_hall_core
     enabled: true

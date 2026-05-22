@@ -41,7 +41,7 @@ class TextCommandParser:
 
         object_goal = self._extract_object_goal(simplified)
         if object_goal is not None:
-            object_label, relation = object_goal
+            object_label, relation, place_label = object_goal
             waypoint = self._waypoint_registry.get(object_label)
             if waypoint:
                 return ParsedCommand(
@@ -53,6 +53,7 @@ class TextCommandParser:
                 CommandType.NAVIGATE_TO_OBJECT,
                 object_label=object_label,
                 object_relation=relation,
+                place_label=place_label,
                 source_text=text,
             )
 
@@ -131,11 +132,49 @@ class TextCommandParser:
                 candidate = candidate[: -len(suffix)].strip()
         return candidate
 
-    def _extract_object_goal(self, text: str) -> Optional[tuple[str, str]]:
+    def _is_numeric_motion_candidate(self, text: str) -> bool:
+        motion_tokens = (
+            "앞",
+            "뒤",
+            "왼쪽",
+            "오른쪽",
+            "좌측",
+            "우측",
+            "forward",
+            "backward",
+            "left",
+            "right",
+        )
+        if self._contains_any(text, motion_tokens):
+            return True
+        return self._number_unit_pattern.fullmatch(text) is not None
+
+    def _split_place_object_candidate(self, candidate: str) -> tuple[Optional[str], str]:
+        separators = (
+            "안에 있는",
+            "안에있는",
+            "안의",
+            "에 있는",
+            "에있는",
+            "의",
+        )
+        for separator in separators:
+            if separator not in candidate:
+                continue
+            place_label, object_label = candidate.split(separator, 1)
+            place_label = place_label.strip()
+            object_label = object_label.strip()
+            if place_label and object_label:
+                return place_label, object_label
+        return None, candidate
+
+    def _extract_object_goal(self, text: str) -> Optional[tuple[str, str, Optional[str]]]:
         if not any(token in text for token in ("go to", "navigate to", "이동", "가", "가줘")):
             return None
         candidate = self._extract_waypoint_candidate(text)
-        if not candidate or any(character.isdigit() for character in candidate):
+        if not candidate:
+            return None
+        if any(character.isdigit() for character in candidate) and self._is_numeric_motion_candidate(candidate):
             return None
         if candidate in ("앞", "뒤", "왼쪽", "오른쪽", "좌측", "우측", "forward", "backward", "left", "right"):
             return None
@@ -160,9 +199,10 @@ class TextCommandParser:
             relation = relation_aliases[parts[-1]]
             candidate = " ".join(parts[:-1]).strip()
 
-        if not candidate:
+        place_label, object_label = self._split_place_object_candidate(candidate)
+        if not object_label:
             return None
-        return candidate, relation
+        return object_label, relation, place_label
 
     def _simplify_korean(self, text: str) -> str:
         simplified = text

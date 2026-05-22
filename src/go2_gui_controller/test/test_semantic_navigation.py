@@ -146,6 +146,16 @@ class TextCommandParserTests(unittest.TestCase):
         self.assertEqual(front.object_relation, "front")
         self.assertEqual(relative.command_type, CommandType.MOVE_RELATIVE)
 
+    def test_place_scoped_object_command_parses_place_and_object(self):
+        parser = TextCommandParser(_FakeWaypointRegistry())
+
+        command = parser.parse("방 1의 화분으로 가")
+
+        self.assertEqual(command.command_type, CommandType.NAVIGATE_TO_OBJECT)
+        self.assertEqual(command.place_label, "방 1")
+        self.assertEqual(command.object_label, "화분")
+        self.assertEqual(command.object_relation, "near")
+
     def test_waypoint_still_wins_for_matching_name(self):
         parser = TextCommandParser(_FakeWaypointRegistry(["home"]))
 

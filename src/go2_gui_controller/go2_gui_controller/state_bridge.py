@@ -142,6 +142,18 @@ class StateBridge:
         self._localization_baseline_pose = self._latest_map_odom_pose
         self._latest_map_pose = (self.state.x, self.state.y, self.state.yaw_rad) if self.state.frame_id == "map" else None
 
+    def reset_runtime_tracking(self) -> None:
+        clear_buffer = getattr(self._tf_buffer, "clear", None)
+        if callable(clear_buffer):
+            clear_buffer()
+        self.state.localization_initialized = False
+        self.state.map_odom_seen = False
+        self.state.map_base_link_seen = False
+        self.state.map_camera_link_seen = False
+        self._latest_map_odom_pose = None
+        self._localization_baseline_pose = None
+        self._latest_map_pose = None
+
     def _mark_frame_seen(self, child_frame: str) -> None:
         normalized_child = self._normalize_frame(child_frame)
         if normalized_child == "odom":

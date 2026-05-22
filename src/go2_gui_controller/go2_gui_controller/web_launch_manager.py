@@ -70,7 +70,7 @@ class WebLaunchManager:
         self._rviz_process: subprocess.Popen[str] | None = None
         self._rviz_state = "stopped"
         self._rviz_stop_requested = False
-        self._selected_map_name = "rtabmap_office" if runtime_mode_key == "sim" else "rtabmap_real"
+        self._selected_map_name = "office_place" if runtime_mode_key == "sim" else "rtabmap_real"
 
         if self._project_dir is None:
             return

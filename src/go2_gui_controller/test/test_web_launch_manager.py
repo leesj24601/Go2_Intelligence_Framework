@@ -212,6 +212,30 @@ class WebLaunchManagerSimulationTests(unittest.TestCase):
             self.assertEqual(kwargs["cwd"], project_dir)
             self.assertEqual(statuses["navigation"], "running")
 
+    def test_navigation_defaults_to_office_place_map_in_sim_mode(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_dir = _write_project_fixture(Path(temp_dir))
+            (project_dir / "maps" / "office_place.db").write_text("")
+            statuses: dict[str, str] = {}
+
+            with (
+                patch.dict(os.environ, {"GO2_PROJECT_DIR": str(project_dir)}, clear=False),
+                patch.object(WebLaunchManager, "_spawn_output_thread"),
+                patch.object(WebLaunchManager, "_spawn_monitor_thread"),
+                patch("go2_gui_controller.web_launch_manager.subprocess.Popen", return_value=_FakeProcess()) as popen,
+            ):
+                manager = WebLaunchManager("sim", lambda _line: None, statuses.__setitem__)
+
+                ok, message = manager.start("navigation")
+
+            self.assertTrue(ok)
+            self.assertEqual(message, "starting Navigation stack")
+            args, _kwargs = popen.call_args
+            self.assertEqual(
+                args[0][-1],
+                f"localization_db:={project_dir / 'maps' / 'office_place.db'}",
+            )
+
     def test_slam_can_start_with_named_database(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_dir = _write_project_fixture(Path(temp_dir))

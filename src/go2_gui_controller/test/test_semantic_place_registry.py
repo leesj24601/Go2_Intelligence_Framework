@@ -53,6 +53,8 @@ class SemanticPlaceRegistryTests(unittest.TestCase):
         registry = SemanticPlaceRegistry(_write_yaml(FIXTURE_YAML))
 
         self.assertEqual(registry.best_match("회의실").place_id, "room_candidate_1")
+        self.assertEqual(registry.best_match("방 1").place_id, "room_candidate_1")
+        self.assertEqual(registry.best_match("room1").place_id, "room_candidate_1")
         self.assertEqual(registry.best_match("복도").place_id, "corridor_candidate_1")
         self.assertEqual(registry.place_for_point(2.0, 1.5).place_id, "room_candidate_1")
         self.assertEqual(registry.place_for_point(6.0, 0.5).place_id, "corridor_candidate_1")

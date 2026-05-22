@@ -21,4 +21,5 @@ class ParsedCommand:
     waypoint_name: Optional[str] = None
     object_label: Optional[str] = None
     object_relation: str = "near"
+    place_label: Optional[str] = None
     source_text: str = ""
