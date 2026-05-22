@@ -4,3 +4,4 @@ sounddevice
 PyYAML
 fastapi
 uvicorn[standard]
+opencv-python-headless

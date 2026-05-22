@@ -13,6 +13,7 @@ _PROJECT_DIR = os.path.dirname(_THIS_DIR)
 
 def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time")
+    localization_db = LaunchConfiguration("localization_db")
 
     nav2_params_file = os.path.join(_PROJECT_DIR, "config", "go2_nav2_params.yaml")
     nav2_bringup_dir = get_package_share_directory("nav2_bringup") # nav2 패키지 ON
@@ -25,6 +26,7 @@ def generate_launch_description():
         launch_arguments={
             "use_sim_time": use_sim_time,
             "localization": "true",
+            "localization_db": localization_db,
         }.items(),
     )
 
@@ -48,6 +50,11 @@ def generate_launch_description():
                 "use_sim_time",
                 default_value="true",
                 description="Use simulation clock from /clock topic",
+            ),
+            DeclareLaunchArgument(
+                "localization_db",
+                default_value=os.path.join(_PROJECT_DIR, "maps", "rtabmap_office.db"),
+                description="RTAB-Map database path used for localization during Nav2.",
             ),
             rtabmap_launch,
             nav2_launch,

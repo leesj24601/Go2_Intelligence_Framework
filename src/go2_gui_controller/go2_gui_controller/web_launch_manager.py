@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 from pathlib import Path
+import re
 import signal
 import shutil
 import subprocess
@@ -41,6 +42,7 @@ class WebLaunchManager:
         "robot_state_publisher",
         "rviz2",
     )
+    MAP_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$")
 
     REQUIRED_LAUNCH_FILES = (
         ("launch", "go2_rtabmap.launch.py"),
@@ -58,6 +60,7 @@ class WebLaunchManager:
         self._project_dir, self._unavailable_reason = self._resolve_project_dir()
         self._lock = threading.Lock()
         self._pending_start_key: str | None = None
+        self._pending_start_map_name: str | None = None
         self._stop_requested: dict[str, bool] = {}
         self._processes: dict[str, subprocess.Popen[str] | None] = {}
         self._states: dict[str, str] = {}
@@ -67,6 +70,7 @@ class WebLaunchManager:
         self._rviz_process: subprocess.Popen[str] | None = None
         self._rviz_state = "stopped"
         self._rviz_stop_requested = False
+        self._selected_map_name = "rtabmap_office" if runtime_mode_key == "sim" else "rtabmap_real"
 
         if self._project_dir is None:
             return
@@ -92,6 +96,7 @@ class WebLaunchManager:
         self._simulation_script = self._project_dir / "scripts" / "go2_sim.py"
         self._status_callback("simulation", self._simulation_state)
         self._rviz_config_file = self._project_dir / "config" / "go2_sim.rviz"
+        self._maps_dir = self._project_dir / "maps"
         self._status_callback("rviz", "stopped")
 
     @property
@@ -132,11 +137,15 @@ class WebLaunchManager:
         with self._lock:
             return self._process_alive(self._simulation_process)
 
-    def start(self, key: str) -> tuple[bool, str]:
+    def start(self, key: str, map_name: str | None = None) -> tuple[bool, str]:
         if not self.available:
             return False, self._unavailable_reason
         if key not in self._specs:
             return False, f"unknown stack: {key}"
+        try:
+            launch_map_name = self._resolve_launch_map_name(key, map_name)
+        except ValueError as exc:
+            return False, str(exc)
 
         other_key = "navigation" if key == "slam" else "slam"
         with self._lock:
@@ -144,18 +153,100 @@ class WebLaunchManager:
                 return False, f"{self._specs[key].label} stack is already running"
             if self._process_alive(self._processes[other_key]):
                 self._pending_start_key = key
+                self._pending_start_map_name = launch_map_name
                 self._log(
                     f"[Runtime] stopping {self._specs[other_key].label} stack before starting {self._specs[key].label}"
                 )
             else:
                 self._pending_start_key = None
+                self._pending_start_map_name = None
 
         if self._process_alive(self._processes.get(other_key)):
             self.stop(other_key)
             return True, f"stopping {self._specs[other_key].label} stack before starting {self._specs[key].label}"
 
-        self._start_process(key)
+        self._start_process(key, launch_map_name)
         return True, f"starting {self._specs[key].label} stack"
+
+    def list_maps(self) -> list[dict[str, object]]:
+        if not self.available:
+            return []
+        maps_dir = self._maps_dir
+        if not maps_dir.is_dir():
+            return []
+        names = {
+            path.stem
+            for path in maps_dir.iterdir()
+            if path.is_file() and path.suffix in (".db", ".yaml", ".pgm")
+        }
+        maps = []
+        for name in sorted(names):
+            maps.append(
+                {
+                    "name": name,
+                    "db": (maps_dir / f"{name}.db").is_file(),
+                    "yaml": (maps_dir / f"{name}.yaml").is_file(),
+                    "pgm": (maps_dir / f"{name}.pgm").is_file(),
+                    "selected": name == self.selected_map_name,
+                }
+            )
+        return maps
+
+    @property
+    def selected_map_name(self) -> str:
+        return self._selected_map_name
+
+    def select_map(self, map_name: str) -> tuple[bool, str]:
+        if not self.available:
+            return False, self._unavailable_reason
+        try:
+            clean_name = self._sanitize_map_name(map_name)
+        except ValueError as exc:
+            return False, str(exc)
+        db_path = self._map_db_path(clean_name)
+        if not db_path.is_file():
+            return False, f"map db not found: {db_path}"
+        self._selected_map_name = clean_name
+        self._log(f"[Runtime] selected map: {clean_name}")
+        return True, f"selected map {clean_name}"
+
+    def save_map(self, map_name: str) -> tuple[bool, str]:
+        if not self.available:
+            return False, self._unavailable_reason
+        try:
+            clean_name = self._sanitize_map_name(map_name)
+        except ValueError as exc:
+            return False, str(exc)
+        self._maps_dir.mkdir(parents=True, exist_ok=True)
+        output_prefix = self._maps_dir / clean_name
+        command = [
+            "ros2",
+            "run",
+            "nav2_map_server",
+            "map_saver_cli",
+            "-f",
+            str(output_prefix),
+        ]
+        try:
+            result = subprocess.run(
+                command,
+                cwd=self._project_dir,
+                text=True,
+                capture_output=True,
+                timeout=30.0,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            self._log(f"[Runtime] map save failed: {exc}")
+            return False, f"map save failed: {exc}"
+        output = "\n".join(part for part in (result.stdout.strip(), result.stderr.strip()) if part)
+        if result.returncode != 0:
+            if output:
+                self._log(f"[Runtime] map save failed: {output}")
+            return False, output or f"map save failed with code {result.returncode}"
+        if self._map_db_path(clean_name).is_file():
+            self._selected_map_name = clean_name
+        self._log(f"[Runtime] map saved: {output_prefix}.yaml/.pgm")
+        return True, f"saved map {clean_name}"
 
     def start_simulation(self) -> tuple[bool, str]:
         if not self.available:
@@ -209,6 +300,7 @@ class WebLaunchManager:
             if not self._process_alive(process):
                 if self._pending_start_key == key:
                     self._pending_start_key = None
+                    self._pending_start_map_name = None
                 return False, f"{self._specs[key].label} stack is not running"
             self._stop_requested[key] = True
             self._states[key] = "stopping"
@@ -294,6 +386,7 @@ class WebLaunchManager:
 
         with self._lock:
             self._pending_start_key = None
+            self._pending_start_map_name = None
             known_processes = [process for process in self._processes.values() if self._process_alive(process)]
             simulation_process = self._simulation_process if self._process_alive(self._simulation_process) else None
             rviz_process = self._rviz_process if self._process_alive(self._rviz_process) else None
@@ -397,15 +490,17 @@ class WebLaunchManager:
             except subprocess.TimeoutExpired:
                 self._kill_group(process)
 
-    def _start_process(self, key: str) -> None:
+    def _start_process(self, key: str, map_name: str | None = None) -> None:
         spec = self._specs[key]
         with self._lock:
             self._stop_requested[key] = False
             self._states[key] = "starting"
             self._status_callback(key, "starting")
 
+        command = ["ros2", "launch", str(spec.launch_file)]
+        command.extend(self._launch_arguments(key, map_name))
         process = subprocess.Popen(
-            ["ros2", "launch", str(spec.launch_file)],
+            command,
             cwd=self._project_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -417,9 +512,44 @@ class WebLaunchManager:
             self._processes[key] = process
             self._states[key] = "running"
             self._status_callback(key, "running")
-        self._log(f"[Runtime] {spec.label} stack started")
+        map_suffix = f" map={map_name}" if map_name else ""
+        self._log(f"[Runtime] {spec.label} stack started{map_suffix}")
         self._spawn_output_thread(process, spec.label)
         self._spawn_monitor_thread(key, process)
+
+    def _resolve_launch_map_name(self, key: str, map_name: str | None) -> str | None:
+        if key == "slam":
+            if not map_name or not str(map_name).strip():
+                return None
+            return self._sanitize_map_name(map_name)
+        if key == "navigation":
+            clean_name = self._sanitize_map_name(map_name or self._selected_map_name)
+            db_path = self._map_db_path(clean_name)
+            if not db_path.is_file():
+                raise ValueError(f"map db not found: {db_path}")
+            self._selected_map_name = clean_name
+            return clean_name
+        return None
+
+    def _launch_arguments(self, key: str, map_name: str | None) -> list[str]:
+        if not map_name:
+            return []
+        if key == "slam":
+            return [f"slam_db:={self._map_db_path(map_name)}"]
+        if key == "navigation":
+            return [f"localization_db:={self._map_db_path(map_name)}"]
+        return []
+
+    def _sanitize_map_name(self, map_name: str) -> str:
+        clean_name = str(map_name or "").strip()
+        if not self.MAP_NAME_PATTERN.fullmatch(clean_name):
+            raise ValueError("map name must use letters, numbers, dot, dash, or underscore")
+        if clean_name in (".", "..") or "/" in clean_name or "\\" in clean_name:
+            raise ValueError("invalid map name")
+        return clean_name
+
+    def _map_db_path(self, map_name: str) -> Path:
+        return self._maps_dir / f"{map_name}.db"
 
     def _simulation_command(self) -> list[str]:
         python_executable = os.environ.get("GO2_SIM_PYTHON", "").strip()
@@ -499,6 +629,7 @@ class WebLaunchManager:
     def _monitor_process(self, key: str, process: subprocess.Popen[str]) -> None:
         exit_code = process.wait()
         pending_key: str | None = None
+        pending_map_name: str | None = None
         with self._lock:
             if self._processes.get(key) is process:
                 self._processes[key] = None
@@ -521,10 +652,12 @@ class WebLaunchManager:
 
             if self._pending_start_key and self._all_processes_stopped_locked():
                 pending_key = self._pending_start_key
+                pending_map_name = self._pending_start_map_name
                 self._pending_start_key = None
+                self._pending_start_map_name = None
 
         if pending_key is not None:
-            self._start_process(pending_key)
+            self._start_process(pending_key, pending_map_name)
 
     def _monitor_simulation_process(self, process: subprocess.Popen[str]) -> None:
         exit_code = process.wait()

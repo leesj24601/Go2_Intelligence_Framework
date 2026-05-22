@@ -77,6 +77,11 @@ class RenameWaypointRequest(BaseModel):
 
 class StackTargetRequest(BaseModel):
     target: str
+    map_name: str | None = None
+
+
+class MapNameRequest(BaseModel):
+    name: str
 
 
 class WebControllerNode(Node):
@@ -534,7 +539,7 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
 
     @app.post("/stack/start")
     async def stack_start(request: StackTargetRequest) -> dict:
-        ok, message = node.launch_manager.start(request.target)
+        ok, message = node.launch_manager.start(request.target, map_name=request.map_name)
         if not ok:
             raise HTTPException(status_code=400, detail=message)
         return {"ok": True, "message": message}
@@ -582,6 +587,37 @@ def create_app(node: WebControllerNode, index_file: Path) -> FastAPI:
         if not ok:
             raise HTTPException(status_code=500, detail=message)
         return {"ok": True, "message": message}
+
+    @app.get("/maps")
+    async def maps_list() -> dict:
+        return {
+            "maps": node.launch_manager.list_maps(),
+            "selected_map": node.launch_manager.selected_map_name if node.launch_manager.available else "",
+        }
+
+    @app.post("/maps/select")
+    async def maps_select(request: MapNameRequest) -> dict:
+        ok, message = node.launch_manager.select_map(request.name)
+        if not ok:
+            raise HTTPException(status_code=400, detail=message)
+        return {
+            "ok": True,
+            "message": message,
+            "maps": node.launch_manager.list_maps(),
+            "selected_map": node.launch_manager.selected_map_name,
+        }
+
+    @app.post("/maps/save")
+    async def maps_save(request: MapNameRequest) -> dict:
+        ok, message = await run_in_threadpool(node.launch_manager.save_map, request.name)
+        if not ok:
+            raise HTTPException(status_code=400, detail=message)
+        return {
+            "ok": True,
+            "message": message,
+            "maps": node.launch_manager.list_maps(),
+            "selected_map": node.launch_manager.selected_map_name,
+        }
 
     return app
 

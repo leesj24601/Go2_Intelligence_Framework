@@ -1,0 +1,104 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict
+
+import yaml
+
+from .semantic_place_geometry import Point, point_in_polygon, polygon_area, polygon_centroid
+
+
+class SemanticPlaceError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class SemanticPlace:
+    place_id: str
+    label: str
+    aliases: tuple[str, ...]
+    frame_id: str
+    polygon: tuple[Point, ...]
+    centroid_x: float
+    centroid_y: float
+    area_m2: float
+    confidence: float = 0.0
+    source: str = ""
+    enabled: bool = True
+
+
+class SemanticPlaceRegistry:
+    def __init__(self, yaml_path: Path | str | None):
+        self._yaml_path = Path(yaml_path) if yaml_path else None
+        self._places: Dict[str, SemanticPlace] = {}
+        self._aliases: Dict[str, list[str]] = {}
+        self.reload()
+
+    def reload(self) -> None:
+        self._places.clear()
+        self._aliases.clear()
+
+        if self._yaml_path is None or not self._yaml_path.exists():
+            return
+
+        raw = yaml.safe_load(self._yaml_path.read_text(encoding="utf-8")) or {}
+        for place_id, entry in (raw.get("places") or {}).items():
+            place = self._parse_place(str(place_id), entry or {})
+            self._places[place.place_id] = place
+            if place.enabled:
+                self._index_alias(place.label, place.place_id)
+                for alias in place.aliases:
+                    self._index_alias(alias, place.place_id)
+
+    def best_match(self, label_or_alias: str) -> SemanticPlace | None:
+        place_ids = self._aliases.get(label_or_alias.lower().strip(), [])
+        for place_id in place_ids:
+            place = self._places.get(place_id)
+            if place is not None and place.enabled:
+                return place
+        return None
+
+    def place_for_point(self, x: float, y: float) -> SemanticPlace | None:
+        matches = [
+            place
+            for place in self._places.values()
+            if place.enabled and point_in_polygon(x, y, place.polygon)
+        ]
+        if not matches:
+            return None
+        return sorted(matches, key=lambda place: (place.area_m2, place.place_id))[0]
+
+    def list_places(self) -> list[SemanticPlace]:
+        return [self._places[place_id] for place_id in sorted(self._places.keys())]
+
+    def _parse_place(self, place_id: str, raw: dict) -> SemanticPlace:
+        label = str(raw.get("label", "")).strip()
+        if not place_id.strip() or not label:
+            raise SemanticPlaceError("semantic_place_missing_id_or_label")
+
+        polygon = tuple((float(point[0]), float(point[1])) for point in raw.get("polygon", []))
+        if len(polygon) < 3:
+            raise SemanticPlaceError(f"semantic_place_invalid_polygon:{place_id}")
+
+        centroid = polygon_centroid(polygon)
+        area = polygon_area(polygon)
+        return SemanticPlace(
+            place_id=place_id,
+            label=label,
+            aliases=tuple(str(alias).lower() for alias in raw.get("aliases", [])),
+            frame_id=str(raw.get("frame_id", "map")),
+            polygon=polygon,
+            centroid_x=float(raw.get("centroid_x", centroid[0])),
+            centroid_y=float(raw.get("centroid_y", centroid[1])),
+            area_m2=float(raw.get("area_m2", area)),
+            confidence=float(raw.get("confidence", 0.0)),
+            source=str(raw.get("source", "")),
+            enabled=bool(raw.get("enabled", True)),
+        )
+
+    def _index_alias(self, alias: str, place_id: str) -> None:
+        key = alias.lower().strip()
+        if not key:
+            return
+        self._aliases.setdefault(key, []).append(place_id)

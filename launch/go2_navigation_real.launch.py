@@ -13,6 +13,7 @@ _PROJECT_DIR = os.path.dirname(_THIS_DIR)
 
 def generate_launch_description():
     localization = LaunchConfiguration("localization")
+    localization_db = LaunchConfiguration("localization_db")
     rgb_topic = LaunchConfiguration("rgb_topic")
     depth_topic = LaunchConfiguration("depth_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
@@ -52,6 +53,7 @@ def generate_launch_description():
         ),
         launch_arguments={
             "localization": localization,
+            "localization_db": localization_db,
             "rgb_topic": rgb_topic,
             "depth_topic": depth_topic,
             "camera_info_topic": camera_info_topic,
@@ -78,6 +80,11 @@ def generate_launch_description():
             "localization",
             default_value="true",
             description="Use localization mode for the RTAB-Map stack during navigation",
+        ),
+        DeclareLaunchArgument(
+            "localization_db",
+            default_value=os.path.join(_PROJECT_DIR, "maps", "rtabmap_real.db"),
+            description="RTAB-Map database path used for localization during Nav2.",
         ),
         DeclareLaunchArgument(
             "rgb_topic",

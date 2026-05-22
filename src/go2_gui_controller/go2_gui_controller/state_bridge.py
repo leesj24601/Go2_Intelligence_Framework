@@ -44,7 +44,7 @@ class StateBridge:
         self._node = node
         self._odom_topic = odom_topic
         self.state = RobotState()
-        self._tf_buffer = Buffer()
+        self._tf_buffer = Buffer(node=node)
         self._latest_map_odom_pose: tuple[float, float, float] | None = None
         self._localization_baseline_pose: tuple[float, float, float] | None = None
         self._latest_map_pose: tuple[float, float, float] | None = None

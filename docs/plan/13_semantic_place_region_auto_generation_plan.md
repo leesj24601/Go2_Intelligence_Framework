@@ -6,7 +6,7 @@
 
 **Architecture:** 기존 `semantic_objects.yaml`과 `SemanticObjectRegistry`를 유지하면서 `places` 레이어를 추가한다. 1차 자동 생성은 occupancy image 기반 `free-space segmentation -> watershed 분할 -> contour polygon 변환 -> room/corridor heuristic 분류`로 구현하고, 사람 개입은 후보 이름/alias 검수 수준으로 제한한다.
 
-**Tech Stack:** Python 3, NumPy, Pillow, PyYAML, optional OpenCV/scikit-image fallback 검토, ROS2/Nav2 map YAML/PGM, existing `unittest` test style.
+**Tech Stack:** Python 3, NumPy, Pillow, PyYAML, OpenCV (`opencv-python-headless`), ROS2/Nav2 map YAML/PGM, existing `unittest` test style.
 
 ---
 
@@ -94,7 +94,7 @@ objects:
     place_id: room_candidate_1
 ```
 
-`place_id`는 사람이 직접 쓰는 필드가 아니라, 객체 좌표와 place polygon으로 자동 계산한 캐시다.
+`place_id`는 사람이 직접 쓰는 필드가 아니라, 객체 좌표와 place polygon으로 자동 계산한 캐시다. 객체 중심점이 벽/장애물 위에 있어 place polygon 밖이면 `observer_x`, `observer_y`를 fallback 위치로 사용한다.
 
 ---
 
@@ -588,17 +588,19 @@ CLI 인자:
 --corridor-aspect-ratio FLOAT default=3.0
 ```
 
-1차 구현은 dependency 부담을 줄이기 위해 pure Python/NumPy/Pillow로 시작한다.
+1차 구현은 OpenCV의 검증된 이미지 처리 연산을 사용한다. 직접 구현은 YAML schema, registry, 좌표 변환, object-place 연결에만 둔다.
 
 - map YAML에서 `image`, `resolution`, `origin`, `occupied_thresh`, `free_thresh`, `negate`를 읽는다.
 - image를 grayscale로 로드한다.
 - free mask를 만든다.
 - occupied 주변 `inflate-cells`만큼 free를 제거한다.
-- connected components를 만든다.
-- 각 component contour를 bounding rectangle 기반 polygon으로 시작한다.
+- `cv2.connectedComponentsWithStats`로 connected components를 만든다.
+- `cv2.findContours`로 component 외곽선을 추출한다.
+- `cv2.approxPolyDP`로 contour를 polygon으로 단순화한다.
 - component의 width/height 비율이 `corridor-aspect-ratio` 이상이면 `corridor`, 아니면 `room`으로 분류한다.
 - output place id는 `room_candidate_1`, `corridor_candidate_1`처럼 deterministic하게 생성한다.
 - object `x`, `y`가 place polygon 안에 있으면 `place_id`를 기록한다.
+- object 중심점이 place 밖이면 `observer_x`, `observer_y`가 place polygon 안에 있는지 fallback으로 확인한다.
 
 이 Task는 watershed까지 가지 않는다. 먼저 자동 place layer의 end-to-end 흐름을 만든다.
 
@@ -621,7 +623,7 @@ Expected: `OK`.
 - Modify: `scripts/build_semantic_places_from_occupancy.py`
 - Modify: `src/go2_gui_controller/test/test_semantic_place_builder.py`
 
-- [ ] **Step 1: 실패 테스트 추가**
+- [x] **Step 1: 실패 테스트 추가**
 
 하나의 connected component 안에 좁은 연결부로 이어진 두 free-space blob을 만든다. 테스트는 builder가 한 connected component를 최소 2개 place 후보로 나누는지 확인한다.
 
@@ -673,6 +675,8 @@ objects: {}
                 str(output),
                 "--min-region-area-m2",
                 "2.0",
+                "--inflate-cells",
+                "0",
             ],
             check=True,
             cwd=ROOT,
@@ -681,9 +685,12 @@ objects: {}
         data = yaml.safe_load(output.read_text(encoding="utf-8"))
         enabled_places = [place for place in data["places"].values() if place.get("enabled", True)]
         self.assertGreaterEqual(len(enabled_places), 2)
+        self.assertTrue(
+            all(place["source"] == "auto_occupancy_watershed" for place in enabled_places)
+        )
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run:
 
@@ -693,7 +700,7 @@ python3 -m unittest src/go2_gui_controller/test/test_semantic_place_builder.py
 
 Expected: connected component baseline이 place 1개만 생성해서 실패.
 
-- [ ] **Step 3: 거리 변환과 seed 기반 분할 구현**
+- [x] **Step 3: 거리 변환과 seed 기반 분할 구현**
 
 구현 순서:
 
@@ -703,9 +710,9 @@ Expected: connected component baseline이 place 1개만 생성해서 실패.
 4. 각 free cell을 가장 가까운 seed에 배정한다.
 5. seed별 region을 component처럼 polygon으로 변환한다.
 
-OpenCV 또는 scikit-image를 바로 필수 의존성으로 추가하지 않는다. 이 프로젝트의 `requirements.txt` 변경은 별도 검토가 필요하므로, 1차는 NumPy 기반 deterministic algorithm으로 둔다.
+OpenCV는 v1부터 필수 의존성으로 둔다. `requirements.txt`에는 GUI가 필요 없는 `opencv-python-headless`를 추가한다.
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Run:
 

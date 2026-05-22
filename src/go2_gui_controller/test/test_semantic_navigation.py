@@ -59,6 +59,7 @@ objects:
     frame_id: map
     x: 0.0
     y: 0.0
+    place_id: room_candidate_2
     yaw_deg: 0.0
     radius_m: 0.4
     confidence: 0.8
@@ -69,6 +70,7 @@ objects:
     frame_id: map
     x: 2.0
     y: 3.0
+    place_id: room_candidate_1
     radius_m: 0.4
     confidence: 0.9
     updated_at: "2026-04-27T00:00:00Z"
@@ -96,6 +98,13 @@ class SemanticRegistryTests(unittest.TestCase):
                 active_map_id="other_map",
                 active_source_fingerprint="fixture:semantic-object-navigation",
             )
+
+    def test_best_match_can_filter_by_place(self):
+        registry = SemanticObjectRegistry(_write_registry(FIXTURE_YAML))
+
+        self.assertEqual(registry.best_match("소파", place_id="room_candidate_1").object_id, "sofa_1")
+        self.assertEqual(registry.best_match("소파", place_id="room_candidate_2").object_id, "sofa_old")
+        self.assertIsNone(registry.best_match("소파", place_id="missing_room"))
 
 
 class SemanticGoalResolverTests(unittest.TestCase):

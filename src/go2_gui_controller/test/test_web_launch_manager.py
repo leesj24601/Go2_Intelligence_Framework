@@ -181,6 +181,109 @@ class WebLaunchManagerSimulationTests(unittest.TestCase):
             self.assertEqual(message, "Simulation launcher is only available in sim mode")
             self.assertEqual(statuses["simulation"], "disabled")
 
+    def test_navigation_uses_selected_map_database(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_dir = _write_project_fixture(Path(temp_dir))
+            (project_dir / "maps" / "lab.db").write_text("")
+            statuses: dict[str, str] = {}
+
+            with (
+                patch.dict(os.environ, {"GO2_PROJECT_DIR": str(project_dir)}, clear=False),
+                patch.object(WebLaunchManager, "_spawn_output_thread"),
+                patch.object(WebLaunchManager, "_spawn_monitor_thread"),
+                patch("go2_gui_controller.web_launch_manager.subprocess.Popen", return_value=_FakeProcess()) as popen,
+            ):
+                manager = WebLaunchManager("sim", lambda _line: None, statuses.__setitem__)
+
+                ok, message = manager.start("navigation", map_name="lab")
+
+            self.assertTrue(ok)
+            self.assertEqual(message, "starting Navigation stack")
+            args, kwargs = popen.call_args
+            self.assertEqual(
+                args[0],
+                [
+                    "ros2",
+                    "launch",
+                    str(project_dir / "launch" / "go2_navigation.launch.py"),
+                    f"localization_db:={project_dir / 'maps' / 'lab.db'}",
+                ],
+            )
+            self.assertEqual(kwargs["cwd"], project_dir)
+            self.assertEqual(statuses["navigation"], "running")
+
+    def test_slam_can_start_with_named_database(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_dir = _write_project_fixture(Path(temp_dir))
+            statuses: dict[str, str] = {}
+
+            with (
+                patch.dict(os.environ, {"GO2_PROJECT_DIR": str(project_dir)}, clear=False),
+                patch.object(WebLaunchManager, "_spawn_output_thread"),
+                patch.object(WebLaunchManager, "_spawn_monitor_thread"),
+                patch("go2_gui_controller.web_launch_manager.subprocess.Popen", return_value=_FakeProcess()) as popen,
+            ):
+                manager = WebLaunchManager("sim", lambda _line: None, statuses.__setitem__)
+
+                ok, _message = manager.start("slam", map_name="new_office")
+
+            self.assertTrue(ok)
+            args, _kwargs = popen.call_args
+            self.assertEqual(
+                args[0],
+                [
+                    "ros2",
+                    "launch",
+                    str(project_dir / "launch" / "go2_rtabmap.launch.py"),
+                    f"slam_db:={project_dir / 'maps' / 'new_office.db'}",
+                ],
+            )
+
+    def test_save_map_runs_nav2_map_saver(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_dir = _write_project_fixture(Path(temp_dir))
+            calls: list[list[str]] = []
+
+            def fake_run(command, **_kwargs):
+                calls.append(command)
+                return types.SimpleNamespace(returncode=0, stdout="saved", stderr="")
+
+            with (
+                patch.dict(os.environ, {"GO2_PROJECT_DIR": str(project_dir)}, clear=False),
+                patch("go2_gui_controller.web_launch_manager.subprocess.run", side_effect=fake_run),
+            ):
+                manager = WebLaunchManager("sim", lambda _line: None, lambda _key, _status: None)
+
+                ok, message = manager.save_map("lab")
+
+            self.assertTrue(ok)
+            self.assertEqual(message, "saved map lab")
+            self.assertEqual(
+                calls,
+                [
+                    [
+                        "ros2",
+                        "run",
+                        "nav2_map_server",
+                        "map_saver_cli",
+                        "-f",
+                        str(project_dir / "maps" / "lab"),
+                    ]
+                ],
+            )
+
+    def test_rejects_unsafe_map_names(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            project_dir = _write_project_fixture(Path(temp_dir))
+
+            with patch.dict(os.environ, {"GO2_PROJECT_DIR": str(project_dir)}, clear=False):
+                manager = WebLaunchManager("sim", lambda _line: None, lambda _key, _status: None)
+
+            ok, message = manager.start("slam", map_name="../bad")
+
+            self.assertFalse(ok)
+            self.assertIn("map name", message)
+
     def test_force_cleanup_targets_stale_launches_and_orphan_runtime_nodes(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             project_dir = _write_project_fixture(Path(temp_dir))
@@ -210,7 +313,7 @@ class WebLaunchManagerSimulationTests(unittest.TestCase):
 
 
 def _write_project_fixture(project_dir: Path) -> Path:
-    for dirname in ("launch", "config", "scripts"):
+    for dirname in ("launch", "config", "scripts", "maps"):
         (project_dir / dirname).mkdir()
 
     for filename in (

@@ -38,6 +38,7 @@ class SemanticObject:
     y: float
     z: float = 0.0
     yaw_deg: Optional[float] = None
+    place_id: Optional[str] = None
     radius_m: Optional[float] = None
     confidence: float = 0.0
     observation_count: int = 0
@@ -110,8 +111,11 @@ class SemanticObjectRegistry:
         label_or_alias: str,
         *,
         current_pose: tuple[float, float] | None = None,
+        place_id: str | None = None,
     ) -> SemanticObject | None:
         candidates = self.find_all(label_or_alias)
+        if place_id:
+            candidates = [obj for obj in candidates if obj.place_id == place_id]
         if not candidates:
             return None
 
@@ -161,6 +165,7 @@ class SemanticObjectRegistry:
             y=float(raw.get("y", 0.0)),
             z=float(raw.get("z", 0.0)),
             yaw_deg=_optional_float(raw.get("yaw_deg")),
+            place_id=str(raw.get("place_id", "")).strip() or None,
             radius_m=_optional_float(raw.get("radius_m")),
             confidence=float(raw.get("confidence", 0.0)),
             observation_count=int(raw.get("observation_count", 0)),

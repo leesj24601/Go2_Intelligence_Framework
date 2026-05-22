@@ -7,6 +7,8 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     localization = LaunchConfiguration("localization")
+    slam_db = LaunchConfiguration("slam_db")
+    localization_db = LaunchConfiguration("localization_db")
     rgb_topic = LaunchConfiguration("rgb_topic")
     depth_topic = LaunchConfiguration("depth_topic")
     camera_info_topic = LaunchConfiguration("camera_info_topic")
@@ -76,7 +78,6 @@ def generate_launch_description():
 
     # 공통 파라미터 (실로봇 전용)
     _rtabmap_common_params = {
-        "database_path": "/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_real.db",
         "frame_id": "camera_link",
         "map_frame_id": "map",
         # Use pre-synchronized RGBD stream and external odom via TF tree.
@@ -127,6 +128,7 @@ def generate_launch_description():
         condition=UnlessCondition(localization),
         parameters=[{
             **_rtabmap_common_params,
+            "database_path": slam_db,
             "Mem/IncrementalMemory": "true",
             "Mem/InitWMWithAllNodes": "false",
         }],
@@ -142,6 +144,7 @@ def generate_launch_description():
         condition=IfCondition(localization),
         parameters=[{
             **_rtabmap_common_params,
+            "database_path": localization_db,
             "Mem/IncrementalMemory": "false",
             "Mem/InitWMWithAllNodes": "true",
             "Rtabmap/DetectionRate": "2.0",
@@ -184,6 +187,16 @@ def generate_launch_description():
             "localization",
             default_value="false",
             description="SLAM 모드=false / Localization 모드=true",
+        ),
+        DeclareLaunchArgument(
+            "slam_db",
+            default_value="/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_real.db",
+            description="DB path for real robot SLAM mode.",
+        ),
+        DeclareLaunchArgument(
+            "localization_db",
+            default_value="/home/cvr/Desktop/sj/go2_intelligence_framework/maps/rtabmap_real.db",
+            description="DB path for real robot localization mode.",
         ),
         DeclareLaunchArgument(
             "rgb_topic",
